@@ -1,0 +1,108 @@
+name: AstroSathi Android Public Build
+
+on:
+  push:
+    branches: [agent/astrosathi-android]
+    paths:
+      - 'mobile/**'
+      - 'pages/**'
+      - '.github/workflows/astrosathi-public-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  RN_VERSION: '0.86.0'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Verify AstroSathi source
+        run: |
+          test -f mobile/App.tsx
+          test -f mobile/astrology.ts
+          test -f mobile/AstroNativeModule.kt
+          test -f mobile/AstroNativePackage.kt
+          test -f mobile/install-overlay.py
+          test -f pages/index.html
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Generate React Native Android project
+        run: |
+          mkdir -p generated
+          cd generated
+          npx --yes @react-native-community/cli@latest init AstroSathi --version $RN_VERSION --skip-install --package-name com.astrosathi
+
+      - name: Install AstroSathi app overlay
+        run: python3 mobile/install-overlay.py
+
+      - name: Install dependencies
+        working-directory: generated/AstroSathi
+        run: npm install --no-audit --no-fund
+
+      - name: TypeScript validation
+        working-directory: generated/AstroSathi
+        run: npx tsc --noEmit
+
+      - name: Build release APK
+        working-directory: generated/AstroSathi/android
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Verify and prepare public site
+        run: |
+          APK=generated/AstroSathi/android/app/build/outputs/apk/release/app-release.apk
+          test -s "$APK"
+          mkdir -p _site/downloads
+          cp "$APK" _site/downloads/AstroSathi.apk
+          cp pages/index.html _site/index.html
+          sha256sum _site/downloads/AstroSathi.apk | tee _site/downloads/AstroSathi.apk.sha256
+          du -h _site/downloads/AstroSathi.apk
+
+      - name: Upload Pages site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Upload installable APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AstroSathi-Android-APK
+          path: |
+            _site/downloads/AstroSathi.apk
+            _site/downloads/AstroSathi.apk.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
