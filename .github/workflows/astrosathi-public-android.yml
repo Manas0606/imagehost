@@ -1,0 +1,80 @@
+name: AstroSathi Public Android Build
+
+on:
+  push:
+    branches: [agent/astrosathi-android]
+    paths:
+      - 'mobile/**'
+      - 'pages/**'
+      - '.github/workflows/astrosathi-public-android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  RN_VERSION: '0.86.0'
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Generate React Native project
+        run: |
+          mkdir -p generated
+          cd generated
+          npx --yes @react-native-community/cli@latest init AstroSathi --version $RN_VERSION --skip-install --package-name com.astrosathi
+
+      - name: Install AstroSathi overlay
+        run: python3 mobile/install-overlay.py
+
+      - name: Install dependencies
+        working-directory: generated/AstroSathi
+        run: npm install --no-audit --no-fund
+
+      - name: Validate TypeScript
+        working-directory: generated/AstroSathi
+        run: npx tsc --noEmit
+
+      - name: Build release APK
+        working-directory: generated/AstroSathi/android
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Prepare public site
+        run: |
+          test -f generated/AstroSathi/android/app/build/outputs/apk/release/app-release.apk
+          rm -rf public-site
+          mkdir -p public-site/downloads
+          cp pages/index.html public-site/index.html
+          cp generated/AstroSathi/android/app/build/outputs/apk/release/app-release.apk public-site/downloads/AstroSathi.apk
+          sha256sum public-site/downloads/AstroSathi.apk | sed 's#public-site/downloads/##' > public-site/downloads/AstroSathi.apk.sha256
+          touch public-site/.nojekyll
+
+      - name: Publish gh-pages branch without Actions artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd public-site
+          git init
+          git checkout -b gh-pages
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .
+          git commit -m "publish: AstroSathi Android APK ${GITHUB_SHA}"
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push --force origin gh-pages
