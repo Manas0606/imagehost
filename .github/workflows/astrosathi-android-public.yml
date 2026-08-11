@@ -1,0 +1,94 @@
+name: AstroSathi Android Public Build
+
+on:
+  push:
+    branches: [agent/astrosathi-android]
+    paths:
+      - 'mobile/**'
+      - 'pages/**'
+      - '.github/workflows/astrosathi-android-public.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  RN_VERSION: '0.86.0'
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          ref: agent/astrosathi-android
+          fetch-depth: 0
+
+      - name: Verify AstroSathi sources
+        run: |
+          test -f mobile/App.tsx
+          test -f mobile/astrology.ts
+          test -f mobile/AstroNativeModule.kt
+          test -f mobile/AstroNativePackage.kt
+          test -f mobile/install-overlay.py
+          test -f pages/index.html
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Generate React Native Android project
+        run: |
+          mkdir -p generated
+          cd generated
+          npx --yes @react-native-community/cli@latest init AstroSathi --version $RN_VERSION --skip-install --package-name com.astrosathi
+
+      - name: Install AstroSathi overlay
+        run: python3 mobile/install-overlay.py
+
+      - name: Install JavaScript dependencies
+        working-directory: generated/AstroSathi
+        run: npm install --no-audit --no-fund
+
+      - name: Validate TypeScript
+        working-directory: generated/AstroSathi
+        run: npx tsc --noEmit
+
+      - name: Build release APK
+        working-directory: generated/AstroSathi/android
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Prepare public site
+        run: |
+          APK=generated/AstroSathi/android/app/build/outputs/apk/release/app-release.apk
+          test -s "$APK"
+          rm -rf public-dist
+          mkdir -p public-dist/downloads
+          cp pages/index.html public-dist/index.html
+          cp "$APK" public-dist/downloads/AstroSathi.apk
+          sha256sum public-dist/downloads/AstroSathi.apk | sed 's#public-dist/downloads/##' > public-dist/downloads/AstroSathi.apk.sha256
+          date -u +'%Y-%m-%dT%H:%M:%SZ' > public-dist/build.txt
+          touch public-dist/.nojekyll
+          ls -lh public-dist/downloads/AstroSathi.apk
+          cat public-dist/downloads/AstroSathi.apk.sha256
+
+      - name: Publish to gh-pages branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout --orphan gh-pages-temp
+          git rm -rf . >/dev/null 2>&1 || true
+          cp -R public-dist/. .
+          git add -A
+          git commit -m 'publish: AstroSathi Android APK'
+          git branch -M gh-pages
+          git push --force origin gh-pages
