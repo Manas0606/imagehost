@@ -83,11 +83,15 @@ jobs:
 
       - name: Publish to gh-pages branch
         run: |
+          rm -rf generated
+          mkdir -p /tmp/astrosathi-site
+          cp -R public-dist/. /tmp/astrosathi-site/
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git checkout --orphan gh-pages-temp
           git rm -rf . >/dev/null 2>&1 || true
-          cp -R public-dist/. .
+          find . -mindepth 1 -maxdepth 1 -not -name .git -exec rm -rf {} +
+          cp -R /tmp/astrosathi-site/. .
           git add -A
           git commit -m 'publish: AstroSathi Android APK'
           git branch -M gh-pages
