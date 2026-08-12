@@ -8,6 +8,13 @@ if not app.exists(): raise SystemExit('Generated React Native project not found'
 for f in ('App.tsx','astrology.ts','premium.ts'):
     shutil.copy2(src/f,app/f)
 
+# React Native 0.86 TypeScript compatibility fixes in the generated source.
+app_ts=app/'App.tsx'
+app_text=app_ts.read_text()
+app_text=app_text.replace('fetchPremium(boot.deviceId,boot.email)','fetchPremium(boot!.deviceId,boot!.email)')
+app_text=app_text.replace("...StyleSheet.absoluteFillObject,backgroundColor:'rgba(8,5,17,.52)'","position:'absolute',top:0,right:0,bottom:0,left:0,backgroundColor:'rgba(8,5,17,.52)'")
+app_ts.write_text(app_text)
+
 java=app/'android/app/src/main/java/com/astrosathi'; java.mkdir(parents=True,exist_ok=True)
 for f in ('AstroNativeModule.kt','AstroNativePackage.kt'):
     shutil.copy2(src/f,java/f)
