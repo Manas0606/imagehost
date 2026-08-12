@@ -1,0 +1,40 @@
+name: Export AstroSathi APK
+
+on:
+  push:
+    branches: [agent/astrosathi-android]
+    paths:
+      - '.github/workflows/export-astrosathi-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh-pages APK
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          sparse-checkout: |
+            downloads/AstroSathi.apk
+            downloads/AstroSathi.apk.sha256
+          sparse-checkout-cone-mode: false
+
+      - name: Verify published APK
+        run: |
+          test -s downloads/AstroSathi.apk
+          cd downloads
+          sha256sum -c AstroSathi.apk.sha256
+          ls -lh AstroSathi.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AstroSathi-latest-APK
+          path: downloads/AstroSathi.apk
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
