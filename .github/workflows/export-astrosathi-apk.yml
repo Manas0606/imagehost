@@ -23,20 +23,75 @@ jobs:
             downloads/AstroSathi.apk.sha256
           sparse-checkout-cone-mode: false
 
-      - name: Verify published APK
+      - name: Verify and split published APK
         run: |
           test -s downloads/AstroSathi.apk
           cd downloads
           sha256sum -c AstroSathi.apk.sha256
-          ls -lh AstroSathi.apk
+          mkdir -p chunks
+          split -b 8M -d -a 2 AstroSathi.apk chunks/part-
+          sha256sum chunks/part-* > chunks/SHA256SUMS
+          ls -lh chunks/
 
-      - name: Upload APK artifact
+      - name: Upload chunk 00
         uses: actions/upload-artifact@v4
         with:
-          name: AstroSathi-latest-APK
-          path: downloads/AstroSathi.apk
+          name: astrosathi-part-00
+          path: downloads/chunks/part-00
           compression-level: 0
           retention-days: 1
-          if-no-files-found: error
-
-# export-trigger: 2026-08-13T00:02+05:30
+      - name: Upload chunk 01
+        uses: actions/upload-artifact@v4
+        with:
+          name: astrosathi-part-01
+          path: downloads/chunks/part-01
+          compression-level: 0
+          retention-days: 1
+      - name: Upload chunk 02
+        uses: actions/upload-artifact@v4
+        with:
+          name: astrosathi-part-02
+          path: downloads/chunks/part-02
+          compression-level: 0
+          retention-days: 1
+      - name: Upload chunk 03
+        uses: actions/upload-artifact@v4
+        with:
+          name: astrosathi-part-03
+          path: downloads/chunks/part-03
+          compression-level: 0
+          retention-days: 1
+      - name: Upload chunk 04
+        uses: actions/upload-artifact@v4
+        with:
+          name: astrosathi-part-04
+          path: downloads/chunks/part-04
+          compression-level: 0
+          retention-days: 1
+      - name: Upload chunk 05
+        uses: actions/upload-artifact@v4
+        with:
+          name: astrosathi-part-05
+          path: downloads/chunks/part-05
+          compression-level: 0
+          retention-days: 1
+      - name: Upload chunk 06
+        uses: actions/upload-artifact@v4
+        with:
+          name: astrosathi-part-06
+          path: downloads/chunks/part-06
+          compression-level: 0
+          retention-days: 1
+      - name: Upload chunk 07
+        uses: actions/upload-artifact@v4
+        with:
+          name: astrosathi-part-07
+          path: downloads/chunks/part-07
+          compression-level: 0
+          retention-days: 1
+      - name: Upload chunk checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: astrosathi-chunk-checksums
+          path: downloads/chunks/SHA256SUMS
+          retention-days: 1
