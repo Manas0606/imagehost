@@ -15,8 +15,9 @@ async function post(path:string,body:any):Promise<ApiResult>{
   return {ok:res.ok,data,message:String(message)};
 }
 
-export async function reserveAccount(name:string,email:string,password:string){
-  const r=await post('/sign-up/email',{name,email:email.trim().toLowerCase(),password});
+export async function registerAccount(name:string,email:string,password:string){
+  const normalized=email.trim().toLowerCase();
+  const r=await post('/sign-up/email',{name:name.trim(),email:normalized,password});
   if(!r.ok){
     const msg=(r.message||'').toLowerCase();
     if(msg.includes('exist')||msg.includes('already')||msg.includes('registered')||r.data?.code==='USER_ALREADY_EXISTS'){
@@ -24,7 +25,16 @@ export async function reserveAccount(name:string,email:string,password:string){
     }
     throw new Error(r.message||'Unable to register right now.');
   }
-  return r.data;
+  const user=r.data?.user||r.data?.data?.user||{name:name.trim(),email:normalized};
+  return {name:user?.name||name.trim(),email:user?.email||normalized};
+}
+
+export async function loginAccount(email:string,password:string){
+  const normalized=email.trim().toLowerCase();
+  const r=await post('/sign-in/email',{email:normalized,password});
+  if(!r.ok)throw new Error('Email or password is incorrect, or the account is not available.');
+  const user=r.data?.user||r.data?.data?.user||{};
+  return {name:user?.name||'AstroSathi User',email:user?.email||normalized};
 }
 
 export async function requestRemotePasswordReset(email:string){
