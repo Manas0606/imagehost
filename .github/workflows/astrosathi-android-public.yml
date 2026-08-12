@@ -69,7 +69,20 @@ jobs:
 
       - name: Build release APK
         working-directory: generated/AstroSathi/android
-        run: ./gradlew assembleRelease --no-daemon --stacktrace
+        run: |
+          ok=0
+          for attempt in 1 2 3; do
+            echo "Gradle release build attempt ${attempt}/3"
+            if ./gradlew assembleRelease --no-daemon --stacktrace; then
+              ok=1
+              break
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "Transient Gradle/build failure; waiting 20 seconds before retry..."
+              sleep 20
+            fi
+          done
+          test "$ok" = "1"
 
       - name: Prepare public site
         run: |
