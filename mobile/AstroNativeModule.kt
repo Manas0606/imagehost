@@ -142,7 +142,7 @@ class AstroNativeModule(private val ctx: ReactApplicationContext): ReactContextB
             p.reject("BIOMETRIC", "Biometric app lock requires Android 9 or newer on this device.")
             return
         }
-        val activity = currentActivity ?: run {
+        val activity = ctx.currentActivity ?: run {
             p.reject("BIOMETRIC", "Biometric authentication is unavailable right now.")
             return
         }
@@ -176,7 +176,9 @@ class AstroNativeModule(private val ctx: ReactApplicationContext): ReactContextB
         try {
             createChannel()
             if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(ctx, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                currentActivity?.let { ActivityCompat.requestPermissions(it, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 5070) }
+                ctx.currentActivity?.let { activity ->
+                    ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 5070)
+                }
             }
             p.resolve(true)
         } catch (e: Exception) {
