@@ -1,16 +1,46 @@
 #!/usr/bin/env python3
 from pathlib import Path
 import json,re,shutil
+
 root=Path.cwd(); src=root/'mobile'; app=root/'generated'/'AstroSathi'
 if not app.exists(): raise SystemExit('Generated React Native project not found')
-for f in ('App.tsx','astrology.ts'): shutil.copy2(src/f,app/f)
+
+for f in ('App.tsx','astrology.ts'):
+    shutil.copy2(src/f,app/f)
+
 java=app/'android/app/src/main/java/com/astrosathi'; java.mkdir(parents=True,exist_ok=True)
-for f in ('AstroNativeModule.kt','AstroNativePackage.kt'): shutil.copy2(src/f,java/f)
+for f in ('AstroNativeModule.kt','AstroNativePackage.kt'):
+    shutil.copy2(src/f,java/f)
+
 main=java/'MainApplication.kt'; text=main.read_text(); needle='PackageList(this).packages.apply {'
 if needle not in text: raise SystemExit('PackageList block not found')
-if 'add(AstroNativePackage())' not in text: text=text.replace(needle,needle+'\n              add(AstroNativePackage())',1)
+if 'add(AstroNativePackage())' not in text:
+    text=text.replace(needle,needle+'\n              add(AstroNativePackage())',1)
 main.write_text(text)
+
 pkg=app/'package.json'; data=json.loads(pkg.read_text()); data.setdefault('dependencies',{})['astronomy-engine']='2.1.19'; pkg.write_text(json.dumps(data,indent=2)+'\n')
-strings=app/'android/app/src/main/res/values/strings.xml'
-if strings.exists(): strings.write_text(re.sub(r'<string name="app_name">.*?</string>','<string name="app_name">AstroSathi</string>',strings.read_text()))
-print('AstroSathi overlay installed')
+
+res=app/'android/app/src/main/res'
+strings=res/'values/strings.xml'
+if strings.exists():
+    strings.write_text(re.sub(r'<string name="app_name">.*?</string>','<string name="app_name">AstroSathi</string>',strings.read_text()))
+
+# Branded vector launcher icon: deep cosmic purple disc with gold solar mark.
+drawable=res/'drawable'; drawable.mkdir(parents=True,exist_ok=True)
+(drawable/'astrosathi_launcher.xml').write_text('''<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#080511" android:pathData="M0,0h108v108h-108z"/>
+    <path android:fillColor="#24133A" android:pathData="M54,8A46,46 0,1 0,54 100A46,46 0,1 0,54 8"/>
+    <path android:fillColor="#F2D17B" android:fillType="evenOdd"
+        android:pathData="M54,27A27,27 0,1 0,54 81A27,27 0,1 0,54 27M54,34A20,20 0,1 1,54 74A20,20 0,1 1,54 34M54,47A7,7 0,1 0,54 61A7,7 0,1 0,54 47"/>
+</vector>''')
+
+manifest=app/'android/app/src/main/AndroidManifest.xml'
+mt=manifest.read_text()
+mt=re.sub(r'android:icon="[^"]+"','android:icon="@drawable/astrosathi_launcher"',mt)
+mt=re.sub(r'android:roundIcon="[^"]+"','android:roundIcon="@drawable/astrosathi_launcher"',mt)
+manifest.write_text(mt)
+
+print('AstroSathi overlay installed with branded launcher icon')
