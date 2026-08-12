@@ -30,10 +30,14 @@ jobs:
         run: |
           test -f mobile/App.tsx
           test -f mobile/astrology.ts
+          test -f mobile/premium.ts
+          test -f mobile/auth.ts
+          test -f mobile/guidance.ts
           test -f mobile/AstroNativeModule.kt
           test -f mobile/AstroNativePackage.kt
           test -f mobile/install-overlay.py
           test -f pages/index.html
+          test -f pages/reset.html
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -74,6 +78,7 @@ jobs:
           rm -rf public-dist
           mkdir -p public-dist/downloads
           cp pages/index.html public-dist/index.html
+          cp pages/reset.html public-dist/reset.html
           cp "$APK" public-dist/downloads/AstroSathi.apk
           sha256sum public-dist/downloads/AstroSathi.apk | sed 's#public-dist/downloads/##' > public-dist/downloads/AstroSathi.apk.sha256
           date -u +'%Y-%m-%dT%H:%M:%SZ' > public-dist/build.txt
