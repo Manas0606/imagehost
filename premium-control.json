@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "global": {
+    "premiumEnabled": true,
+    "message": "",
+    "googleWebClientId": ""
+  },
+  "devices": {},
+  "users": {}
+}
