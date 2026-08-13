@@ -1,16 +1,27 @@
 {
-  "version": 1,
+  "version": 2,
+  "config": {
+    "priceInr": 20,
+    "durationMinutes": 360,
+    "currency": "INR",
+    "telegramAdminChatId": "",
+    "telegramAdminUserId": ""
+  },
   "global": {
     "premiumEnabled": true,
-    "message": "",
-    "googleWebClientId": ""
+    "message": ""
+  },
+  "telegram": {
+    "lastUpdateId": 0
   },
   "devices": {},
   "users": {
     "manasoct1998@gmail.com": {
       "status": "approved",
       "approvedAt": "2026-08-12T08:13:00Z",
-      "message": "Payment verified. AstroSathi Premium is active for exactly 6 hours."
+      "expiresAt": "2026-08-12T14:13:00Z",
+      "durationMinutes": 360,
+      "message": "Payment verified. AstroSathi Premium was approved for 6 hours."
     }
   }
 }
