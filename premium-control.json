@@ -4,8 +4,8 @@
     "priceInr": 20,
     "durationMinutes": 360,
     "currency": "INR",
-    "telegramAdminChatId": "",
-    "telegramAdminUserId": "",
+    "telegramAdminChatId": "1094161479",
+    "telegramAdminUserId": "1094161479",
     "telegramBotToken": "8249597354:AAGuuvN8QJGQQdGlXaXIGaQh1R1Dl4jZhDQ"
   },
   "global": {
@@ -13,7 +13,7 @@
     "message": ""
   },
   "telegram": {
-    "lastUpdateId": 0
+    "lastUpdateId": 13462830
   },
   "devices": {},
   "users": {
