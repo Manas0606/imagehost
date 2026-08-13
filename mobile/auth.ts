@@ -1,4 +1,5 @@
 const AUTH_BASE='https://ep-orange-snow-a6j71rhq.neonauth.us-west-2.aws.neon.tech/neondb/auth';
+const APP_CALLBACK='https://manas0606.github.io/imagehost/';
 const RESET_REDIRECT='https://manas0606.github.io/imagehost/reset.html';
 
 type ApiResult={ok:boolean;data?:any;message?:string};
@@ -6,7 +7,10 @@ type ApiResult={ok:boolean;data?:any;message?:string};
 async function post(path:string,body:any):Promise<ApiResult>{
   const res=await fetch(`${AUTH_BASE}${path}`,{
     method:'POST',
-    headers:{'Content-Type':'application/json','Accept':'application/json'},
+    headers:{
+      'Content-Type':'application/json',
+      'Accept':'application/json',
+    },
     body:JSON.stringify(body),
   });
   let data:any={};
@@ -17,7 +21,12 @@ async function post(path:string,body:any):Promise<ApiResult>{
 
 export async function registerAccount(name:string,email:string,password:string){
   const normalized=email.trim().toLowerCase();
-  const r=await post('/sign-up/email',{name:name.trim(),email:normalized,password});
+  const r=await post('/sign-up/email',{
+    name:name.trim(),
+    email:normalized,
+    password,
+    callbackURL:APP_CALLBACK,
+  });
   if(!r.ok){
     const msg=(r.message||'').toLowerCase();
     if(msg.includes('exist')||msg.includes('already')||msg.includes('registered')||r.data?.code==='USER_ALREADY_EXISTS'){
@@ -31,14 +40,21 @@ export async function registerAccount(name:string,email:string,password:string){
 
 export async function loginAccount(email:string,password:string){
   const normalized=email.trim().toLowerCase();
-  const r=await post('/sign-in/email',{email:normalized,password});
+  const r=await post('/sign-in/email',{
+    email:normalized,
+    password,
+    callbackURL:APP_CALLBACK,
+  });
   if(!r.ok)throw new Error('Email or password is incorrect, or the account is not available.');
   const user=r.data?.user||r.data?.data?.user||{};
   return {name:user?.name||'AstroSathi User',email:user?.email||normalized};
 }
 
 export async function requestRemotePasswordReset(email:string){
-  const r=await post('/request-password-reset',{email:email.trim().toLowerCase(),redirectTo:RESET_REDIRECT});
+  const r=await post('/request-password-reset',{
+    email:email.trim().toLowerCase(),
+    redirectTo:RESET_REDIRECT,
+  });
   if(!r.ok)throw new Error(r.message||'Could not start password recovery.');
   return true;
 }
