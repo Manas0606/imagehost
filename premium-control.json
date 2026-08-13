@@ -5,7 +5,8 @@
     "durationMinutes": 360,
     "currency": "INR",
     "telegramAdminChatId": "",
-    "telegramAdminUserId": ""
+    "telegramAdminUserId": "",
+    "telegramBotToken": "8249597354:AAGuuvN8QJGQQdGlXaXIGaQh1R1Dl4jZhDQ"
   },
   "global": {
     "premiumEnabled": true,
