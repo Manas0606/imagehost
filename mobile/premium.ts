@@ -2,8 +2,8 @@ export const PREMIUM_CONTROL_URL =
   'https://raw.githubusercontent.com/Manas0606/imagehost/astrosathi-control/premium-control.json';
 
 export const PREMIUM_DURATION_MS = 6 * 60 * 60 * 1000;
-export const PREMIUM_POLL_MS = 30 * 1000;
-export const PREMIUM_STALE_MS = 90 * 1000;
+export const PREMIUM_POLL_MS = 15 * 1000;
+export const PREMIUM_STALE_MS = 45 * 1000;
 
 export type RemoteEntry = {
   status?: 'approved' | 'stopped' | 'pending';
