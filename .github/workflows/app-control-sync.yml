@@ -1,0 +1,45 @@
+name: App Control Sync
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/app-control-sync.yml'
+      - '.github/scripts/astrosathi_telegram_admin.py'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: app-control-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: runner
+      - uses: actions/checkout@v4
+        with:
+          ref: astrosathi-control
+          path: control
+          fetch-depth: 0
+      - run: python3 runner/.github/scripts/astrosathi_telegram_admin.py control/premium-control.json
+      - run: |
+          cd control
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add premium-control.json
+          if git diff --cached --quiet; then
+            echo 'No changes.'
+          else
+            git commit -m 'update control state'
+            git push origin HEAD:astrosathi-control
+          fi
