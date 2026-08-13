@@ -37,6 +37,39 @@ app_text=app_text.replace(
     "inputMulti:{height:120,minHeight:120,paddingTop:14,textAlignVertical:'top'},btn:",
     "inputMulti:{height:120,minHeight:120,paddingTop:14,textAlignVertical:'top'},passwordWrap:{position:'relative',width:'100%'},passwordInput:{paddingRight:58},eyeBtn:{position:'absolute',right:4,top:3,width:50,height:50,alignItems:'center',justifyContent:'center'},eyeText:{fontSize:21},btn:"
 )
+
+# Security hardening: re-lock a protected app whenever it returns from the background,
+# and refresh premium immediately on foreground so a remote stop is applied quickly.
+app_text=app_text.replace(
+    "ActivityIndicator,Alert,Image,KeyboardAvoidingView",
+    "ActivityIndicator,Alert,AppState,Image,KeyboardAvoidingView",
+    1
+)
+app_text=app_text.replace(
+    "const prevPremium=useRef<string>('checking'),t=T[l];",
+    "const prevPremium=useRef<string>('checking'),appState=useRef(AppState.currentState),t=T[l];",
+    1
+)
+lock_effect=" useEffect(()=>{if(boot?.loggedIn&&boot.lockMode&&boot.lockMode!=='none')setLocked(true)},[boot?.loggedIn,boot?.lockMode]);"
+background_effect=""" useEffect(()=>{const sub=AppState.addEventListener('change',next=>{const wasBackground=appState.current==='background'||appState.current==='inactive';if(wasBackground&&next==='active'&&boot?.loggedIn){fetchPremium(boot.deviceId,boot.email).then(setPremium).catch(()=>{});if(boot.lockMode&&boot.lockMode!=='none'){setLockSecret('');setPattern([]);setLocked(true)}}appState.current=next});return()=>sub.remove()},[boot?.loggedIn,boot?.deviceId,boot?.email,boot?.lockMode]);"""
+if lock_effect not in app_text: raise SystemExit('App lock effect marker not found')
+app_text=app_text.replace(lock_effect,lock_effect+'\n'+background_effect,1)
+
+# A biometric lock is saved only after Android proves biometric authentication works.
+old_setlock="await AstroNative.setAppLock(mode,mode==='pattern'?pattern.join('-'):secret);"
+new_setlock="if(mode==='biometric')await AstroNative.authenticateBiometric();await AstroNative.setAppLock(mode,mode==='pattern'?pattern.join('-'):secret);"
+if old_setlock not in app_text: raise SystemExit('Biometric lock marker not found')
+app_text=app_text.replace(old_setlock,new_setlock,1)
+
+# Fail the release build if a future source edit silently prevents any hardening patch.
+required=(
+    "behavior={Platform.OS==='ios'?'padding':'height'}",
+    'function PasswordField(',
+    'AppState.addEventListener',
+    "if(mode==='biometric')await AstroNative.authenticateBiometric()",
+)
+for needle in required:
+    if needle not in app_text: raise SystemExit(f'Generated app hardening missing: {needle}')
 app_ts.write_text(app_text)
 
 java=app/'android/app/src/main/java/com/astrosathi'; java.mkdir(parents=True,exist_ok=True)
@@ -98,4 +131,4 @@ for perm in permissions:
         mt=mt.replace('>',f'>\n    <uses-permission android:name="{perm}" />',1)
 manifest.write_text(mt)
 
-print('AstroSathi overlay installed: keyboard-safe scrolling auth, password eye controls, absolute auth callbacks, email auth, forgot password, duplicate registration guard, Vedic guidance, Telegram premium, notifications, PIN/pattern/biometric lock, bright-gold branding')
+print('AstroSathi overlay installed: keyboard-safe auth, password eye controls, safe-area UI, absolute auth callbacks, email auth, forgot password, duplicate registration guard, Vedic guidance, 15-second Telegram premium control, foreground premium refresh, notifications, background re-lock, validated PIN/pattern/biometric lock, bright-gold branding')
