@@ -8,6 +8,37 @@ if not app.exists(): raise SystemExit('Generated React Native project not found'
 for f in ('App.tsx','astrology.ts','premium.ts','auth.ts','guidance.ts'):
     shutil.copy2(src/f,app/f)
 
+# Mobile auth hardening: scroll above keyboard + password visibility controls.
+app_ts=app/'App.tsx'
+app_text=app_ts.read_text()
+app_text=app_text.replace(
+    "<KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>",
+    "<KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':'height'} keyboardVerticalOffset={0}>"
+)
+app_text=app_text.replace(
+    "<Field label={t.password} value={password} onChangeText={setPassword} secureTextEntry/>",
+    "<PasswordField label={t.password} value={password} onChangeText={setPassword}/>"
+)
+app_text=app_text.replace(
+    "<Field label={t.confirm} value={confirm} onChangeText={setConfirm} secureTextEntry/>",
+    "<PasswordField label={t.confirm} value={confirm} onChangeText={setConfirm}/>"
+)
+# Lock PIN remains intentionally obscured; only account password inputs get eye controls.
+field_marker="function Field({label,containerStyle,multiline,...p}:any){return<View style={[s.field,containerStyle]}><Text style={s.label}>{label}</Text><TextInput {...p} multiline={multiline} placeholderTextColor=\"#756b83\" selectionColor=\"#ffd64f\" style={[s.input,multiline&&s.inputMulti]}/></View>}"
+password_component="""function PasswordField({label,value,onChangeText}:any){const[visible,setVisible]=useState(false);return<View style={s.field}><Text style={s.label}>{label}</Text><View style={s.passwordWrap}><TextInput value={value} onChangeText={onChangeText} secureTextEntry={!visible} autoCapitalize=\"none\" autoCorrect={false} textContentType=\"password\" placeholderTextColor=\"#756b83\" selectionColor=\"#ffd64f\" style={[s.input,s.passwordInput]}/><Pressable accessibilityRole=\"button\" accessibilityLabel={visible?'Hide password':'Show password'} hitSlop={10} onPress={()=>setVisible(!visible)} style={s.eyeBtn}><Text style={s.eyeText}>{visible?'🙈':'👁'}</Text></Pressable></View></View>}\n"""
+if 'function PasswordField(' not in app_text:
+    if field_marker not in app_text: raise SystemExit('Field component marker not found')
+    app_text=app_text.replace(field_marker,password_component+field_marker)
+app_text=app_text.replace(
+    "authScroll:{flexGrow:1,justifyContent:'center',padding:22,paddingVertical:32}",
+    "authScroll:{flexGrow:1,justifyContent:'flex-start',paddingHorizontal:22,paddingTop:26,paddingBottom:220}"
+)
+app_text=app_text.replace(
+    "inputMulti:{height:120,minHeight:120,paddingTop:14,textAlignVertical:'top'},btn:",
+    "inputMulti:{height:120,minHeight:120,paddingTop:14,textAlignVertical:'top'},passwordWrap:{position:'relative',width:'100%'},passwordInput:{paddingRight:58},eyeBtn:{position:'absolute',right:4,top:3,width:50,height:50,alignItems:'center',justifyContent:'center'},eyeText:{fontSize:21},btn:"
+)
+app_ts.write_text(app_text)
+
 java=app/'android/app/src/main/java/com/astrosathi'; java.mkdir(parents=True,exist_ok=True)
 for f in ('AstroNativeModule.kt','AstroNativePackage.kt'):
     shutil.copy2(src/f,java/f)
@@ -52,6 +83,11 @@ manifest=app/'android/app/src/main/AndroidManifest.xml'
 mt=manifest.read_text()
 mt=re.sub(r'android:icon="[^"]+"','android:icon="@drawable/astrosathi_launcher"',mt)
 mt=re.sub(r'android:roundIcon="[^"]+"','android:roundIcon="@drawable/astrosathi_launcher"',mt)
+# Force the focused auth field to remain visible when the software keyboard opens.
+if 'android:windowSoftInputMode=' in mt:
+    mt=re.sub(r'android:windowSoftInputMode="[^"]+"','android:windowSoftInputMode="adjustResize"',mt)
+else:
+    mt=mt.replace('<activity ','<activity android:windowSoftInputMode="adjustResize" ',1)
 permissions=[
  'android.permission.INTERNET',
  'android.permission.USE_BIOMETRIC',
@@ -62,4 +98,4 @@ for perm in permissions:
         mt=mt.replace('>',f'>\n    <uses-permission android:name="{perm}" />',1)
 manifest.write_text(mt)
 
-print('AstroSathi overlay installed: email auth, forgot password, duplicate registration guard, Vedic guidance, Telegram premium, notifications, PIN/pattern/biometric lock, bright-gold branding')
+print('AstroSathi overlay installed: keyboard-safe scrolling auth, password eye controls, absolute auth callbacks, email auth, forgot password, duplicate registration guard, Vedic guidance, Telegram premium, notifications, PIN/pattern/biometric lock, bright-gold branding')
