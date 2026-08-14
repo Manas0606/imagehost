@@ -2,7 +2,7 @@
 from pathlib import Path
 
 scripts = Path(__file__).resolve().parent
-for name in ('install-overlay-base.py', 'install-premium-v2.py'):
+for name in ('install-overlay-base.py', 'install-premium-v2.py', 'install-guidance-v2.py'):
     path = scripts / name
     if not path.exists():
         raise SystemExit(f'Missing AstroSathi overlay component: {name}')
