@@ -29,6 +29,8 @@ jobs:
         run: |
           test -f mobile/App.tsx
           test -f mobile/astrology.ts
+          test -f mobile/guidance.ts
+          test -f mobile/accuracy-tests.ts
           test -f mobile/AstroNativeModule.kt
           test -f mobile/AstroNativePackage.kt
           test -f mobile/install-overlay.py
@@ -61,6 +63,10 @@ jobs:
       - name: TypeScript validation
         working-directory: generated/AstroSathi
         run: npx tsc --noEmit
+
+      - name: Deterministic astrology regression checks
+        working-directory: generated/AstroSathi
+        run: npx --yes tsx@4.20.3 accuracy-tests.ts
 
       - name: Build release APK
         working-directory: generated/AstroSathi/android
