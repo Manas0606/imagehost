@@ -64,6 +64,12 @@ def edit_message(chat_id, message_id, text, keyboard=None):
         payload['reply_markup'] = keyboard
     call('editMessageText', payload)
 
+def confirm_admin(chat_id, text):
+    try:
+        call('sendMessage', {'chat_id': chat_id, 'text': text})
+    except Exception as exc:
+        print('admin confirmation warning:', exc)
+
 last_update = int(telegram_state.get('lastUpdateId') or 0)
 updates = call('getUpdates', {
     'offset': last_update + 1,
@@ -128,6 +134,7 @@ for update in updates:
     device = fields.get('Device ID', '')
     utr = fields.get('UTR', '')
     amount = fields.get('Amount', '')
+    who = name or email or device or 'this user'
 
     if action == 'A':
         minutes = safe_duration()
@@ -157,6 +164,14 @@ for update in updates:
         keyboard = {'inline_keyboard': [[{'text': '⛔ STOP PREMIUM', 'callback_data': f'S:{request_id}'}]]}
         edit_message(chat_id, message_id, text, keyboard)
         answer(callback_id, f'Approved for {minutes} minutes.')
+        confirm_admin(chat_id, '\n'.join([
+            f'✅ You approved {who}.',
+            f'Email: {email or "—"}',
+            f'Amount: {amount or "—"}',
+            f'Duration: {minutes} minutes',
+            f'Expires: {iso(expires)}',
+            'The user app will unlock Premium after the control update syncs.'
+        ]))
 
     elif action == 'R':
         entry = {
@@ -176,6 +191,7 @@ for update in updates:
         ])
         edit_message(chat_id, message_id, text, {'inline_keyboard': []})
         answer(callback_id, 'Request rejected.')
+        confirm_admin(chat_id, f'❌ You rejected the premium request for {who}.')
 
     elif action == 'S':
         stopped = {'status': 'stopped', 'message': 'Premium access was stopped by the AstroSathi admin.'}
@@ -197,6 +213,7 @@ for update in updates:
         ])
         edit_message(chat_id, message_id, text, {'inline_keyboard': []})
         answer(callback_id, 'Premium stopped.')
+        confirm_admin(chat_id, f'⛔ You stopped Premium for {who}.')
     else:
         answer(callback_id, 'Unknown admin action.')
 
