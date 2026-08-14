@@ -135,13 +135,16 @@ for update in updates:
     utr = fields.get('UTR', '')
     amount = fields.get('Amount', '')
     who = name or email or device or 'this user'
+    decision_at = datetime.now(timezone.utc)
 
     if action == 'A':
         minutes = safe_duration()
-        approved = datetime.now(timezone.utc)
+        approved = decision_at
         expires = approved + timedelta(minutes=minutes)
         entry = {
             'status': 'approved',
+            'requestId': request_id,
+            'decisionAt': iso(decision_at),
             'approvedAt': iso(approved),
             'expiresAt': iso(expires),
             'durationMinutes': minutes,
@@ -170,12 +173,14 @@ for update in updates:
             f'Amount: {amount or "—"}',
             f'Duration: {minutes} minutes',
             f'Expires: {iso(expires)}',
-            'The user app will unlock Premium after the control update syncs.'
+            'The user app is now eligible for Premium.'
         ]))
 
     elif action == 'R':
         entry = {
             'status': 'rejected',
+            'requestId': request_id,
+            'decisionAt': iso(decision_at),
             'message': 'Premium request rejected by the AstroSathi admin.'
         }
         store_for_user(fields, entry)
@@ -194,7 +199,12 @@ for update in updates:
         confirm_admin(chat_id, f'❌ You rejected the premium request for {who}.')
 
     elif action == 'S':
-        stopped = {'status': 'stopped', 'message': 'Premium access was stopped by the AstroSathi admin.'}
+        stopped = {
+            'status': 'stopped',
+            'requestId': request_id,
+            'decisionAt': iso(decision_at),
+            'message': 'Premium access was stopped by the AstroSathi admin.'
+        }
         existing_device = cfg.setdefault('devices', {}).get(device, {}) if device else {}
         existing_user = cfg.setdefault('users', {}).get(email, {}) if email else {}
         if device:
