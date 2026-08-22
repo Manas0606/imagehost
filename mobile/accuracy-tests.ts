@@ -1,5 +1,6 @@
 import {calculateChart,calculateTransits,getDashaAt,normalizeBirthTime} from './astrology';
 import {analyseQuestion} from './guidance';
+import {historicalOffsetMinutes,timezoneForLocation} from './location';
 
 function check(condition:boolean,message:string){if(!condition)throw new Error(`AstroSathi regression failed: ${message}`)}
 function in360(v:number){return Number.isFinite(v)&&v>=0&&v<360}
@@ -14,6 +15,13 @@ const chart24=calculateChart('1998-07-10','02:30',20.4625,85.8830,330);
 check(chart12.utc===chart24.utc,'AM/PM and 24-hour inputs must resolve to same UTC instant');
 check(Math.abs(chart12.ascendant.longitude-chart24.ascendant.longitude)<1e-10,'AM/PM and 24-hour inputs must produce same ascendant');
 let invalidDateRejected=false;try{calculateChart('2026-02-31','12:00',20.2961,85.8245,330)}catch{invalidDateRejected=true}check(invalidDateRejected,'invalid calendar date must be rejected');
+
+const odishaZone=timezoneForLocation(20.4625,85.8830,'IN');
+check(odishaZone==='Asia/Kolkata','Indian birthplace must resolve to Asia/Kolkata');
+const indiaOffset=historicalOffsetMinutes('1998-07-10','2:30 AM',odishaZone);
+check(indiaOffset===330,'1998 Indian birth must resolve to UTC +05:30');
+const villageChart=calculateChart('1998-07-10','2:30 AM',20.123456,84.654321,indiaOffset);
+check(villageChart.utc==='1998-07-09T21:00:00.000Z','birth local time must convert to UTC using resolved Indian offset');
 
 const chart=calculateChart('2000-01-01','12:00',28.6139,77.2090,330);
 check(chart.planets.length===9,'expected 9 grahas');
@@ -48,4 +56,4 @@ check(followUp.topic==='career','follow-up topic memory failed');
 const study=analyseQuestion(chart,'ମୋ ପରୀକ୍ଷା ଓ ପଢ଼ା କେମିତି ହେବ?','or');
 check(study.topic==='education','Odia education intent detection failed');
 
-console.log('AstroSathi deterministic astrology/guidance regression checks passed');
+console.log('AstroSathi deterministic astrology/guidance/location regression checks passed');
