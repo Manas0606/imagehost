@@ -1,8 +1,19 @@
-import {calculateChart,calculateTransits,getDashaAt} from './astrology';
+import {calculateChart,calculateTransits,getDashaAt,normalizeBirthTime} from './astrology';
 import {analyseQuestion} from './guidance';
 
 function check(condition:boolean,message:string){if(!condition)throw new Error(`AstroSathi regression failed: ${message}`)}
 function in360(v:number){return Number.isFinite(v)&&v>=0&&v<360}
+
+check(normalizeBirthTime('2:30 AM')==='02:30','12-hour AM parsing failed');
+check(normalizeBirthTime('2:30 PM')==='14:30','12-hour PM parsing failed');
+check(normalizeBirthTime('12:00 AM')==='00:00','midnight parsing failed');
+check(normalizeBirthTime('12:00 PM')==='12:00','noon parsing failed');
+check(normalizeBirthTime('2:30')==='02:30','short 24-hour parsing failed');
+const chart12=calculateChart('1998-07-10','2:30 AM',20.4625,85.8830,330);
+const chart24=calculateChart('1998-07-10','02:30',20.4625,85.8830,330);
+check(chart12.utc===chart24.utc,'AM/PM and 24-hour inputs must resolve to same UTC instant');
+check(Math.abs(chart12.ascendant.longitude-chart24.ascendant.longitude)<1e-10,'AM/PM and 24-hour inputs must produce same ascendant');
+let invalidDateRejected=false;try{calculateChart('2026-02-31','12:00',20.2961,85.8245,330)}catch{invalidDateRejected=true}check(invalidDateRejected,'invalid calendar date must be rejected');
 
 const chart=calculateChart('2000-01-01','12:00',28.6139,77.2090,330);
 check(chart.planets.length===9,'expected 9 grahas');
