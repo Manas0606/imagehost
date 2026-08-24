@@ -101,9 +101,20 @@ jobs:
           cp "$APK" public-dist/downloads/AstroSathi.apk
           sha256sum public-dist/downloads/AstroSathi.apk | sed 's#public-dist/downloads/##' > public-dist/downloads/AstroSathi.apk.sha256
           date -u +'%Y-%m-%dT%H:%M:%SZ' > public-dist/build.txt
+          echo "$GITHUB_RUN_ID" > public-dist/run.txt
           touch public-dist/.nojekyll
           ls -lh public-dist/downloads/AstroSathi.apk
           cat public-dist/downloads/AstroSathi.apk.sha256
+
+      - name: Upload installable APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AstroSathi-Latest-APK
+          path: |
+            public-dist/downloads/AstroSathi.apk
+            public-dist/downloads/AstroSathi.apk.sha256
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Publish to gh-pages branch
         run: |
