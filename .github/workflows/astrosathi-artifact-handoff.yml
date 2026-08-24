@@ -1,0 +1,47 @@
+name: AstroSathi APK Handoff
+
+on:
+  push:
+    branches: [agent/astrosathi-android]
+    paths:
+      - '.github/workflows/astrosathi-artifact-handoff.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  handoff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout published APK
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+
+      - name: Verify published APK
+        run: |
+          test -s downloads/AstroSathi.apk
+          test -s downloads/AstroSathi.apk.sha256
+          sha256sum -c downloads/AstroSathi.apk.sha256
+          echo "$GITHUB_RUN_ID" > handoff-run.txt
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AstroSathi-Latest-APK-Handoff
+          path: |
+            downloads/AstroSathi.apk
+            downloads/AstroSathi.apk.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish handoff run id
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add handoff-run.txt
+          git commit -m 'chore: record AstroSathi APK handoff run'
+          git push origin gh-pages
