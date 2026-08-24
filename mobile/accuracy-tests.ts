@@ -1,6 +1,6 @@
 import {calculateChart,calculateTransits,getDashaAt,normalizeBirthTime} from './astrology';
 import {analyseQuestion} from './guidance';
-import {askMiniAI} from './mini-ai';
+import {askMiniAI} from './mini-ai-engine';
 import {historicalOffsetMinutes,timezoneForLocation} from './location';
 
 function check(condition:boolean,message:string){if(!condition)throw new Error(`AstroSathi regression failed: ${message}`)}
@@ -65,7 +65,10 @@ check(miniCareer.directAnswer.length>60,'Mini-AI comparison answer too shallow')
 const miniFollow=askMiniAI(chart,'when exactly?','en',miniCareer.context);
 check(miniFollow.topic==='career','Mini-AI follow-up context failed');
 check(miniFollow.intent==='timing','Mini-AI timing follow-up failed');
+check(miniFollow.focus!=='reconciliation','Mini-AI matched ex inside exactly');
 check(miniFollow.timingWindows.length>0,'Mini-AI timing windows missing');
+const miniNext=askMiniAI(chart,'what about next month?','en',miniCareer.context);
+check(miniNext.topic==='career'&&miniNext.focus!=='reconciliation','Mini-AI matched ex inside next');
 const intimacy=askMiniAI(chart,'Sex','en');
 check(intimacy.topic==='love','Mini-AI intimacy topic failed');
 check(intimacy.focus==='intimacy','Mini-AI intimacy focus failed');
