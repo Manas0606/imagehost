@@ -4,8 +4,8 @@ path=Path.cwd()/'generated/AstroSathi/App.tsx'
 if not path.exists(): raise SystemExit('Generated App.tsx not found')
 text=path.read_text()
 old="const key=`${st.kind}|${st.requestId||''}|${st.approvedAt||''}|${st.expiresAt||''}|${st.message||''}`;"
-new="const key=`${st.kind}|${st.requestId||''}|${st.approvedAt||''}|${st.expiresAt||''}`;"
+new="const identity=st.requestId||String(st.approvedAt||st.expiresAt||'legacy');const key=`${st.kind}|${identity}`;"
 if old not in text: raise SystemExit('Premium notice identity marker not found')
 text=text.replace(old,new,1)
 path.write_text(text)
-print('AstroSathi premium notification identity is stable across message wording changes')
+print('AstroSathi premium notification identity is keyed by request so the same approval never repeats')
