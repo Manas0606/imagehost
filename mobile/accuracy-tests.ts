@@ -1,5 +1,6 @@
 import {calculateChart,calculateTransits,getDashaAt,normalizeBirthTime} from './astrology';
 import {analyseQuestion} from './guidance';
+import {askMiniAI} from './mini-ai';
 import {historicalOffsetMinutes,timezoneForLocation} from './location';
 
 function check(condition:boolean,message:string){if(!condition)throw new Error(`AstroSathi regression failed: ${message}`)}
@@ -56,4 +57,25 @@ check(followUp.topic==='career','follow-up topic memory failed');
 const study=analyseQuestion(chart,'ମୋ ପରୀକ୍ଷା ଓ ପଢ଼ା କେମିତି ହେବ?','or');
 check(study.topic==='education','Odia education intent detection failed');
 
-console.log('AstroSathi deterministic astrology/guidance/location regression checks passed');
+const miniCareer=askMiniAI(chart,'Government or private job?','en');
+check(miniCareer.topic==='career','Mini-AI career classification failed');
+check(miniCareer.intent==='comparison','Mini-AI comparison intent failed');
+check(miniCareer.focus==='jobType','Mini-AI government/private focus failed');
+check(miniCareer.directAnswer.length>60,'Mini-AI comparison answer too shallow');
+const miniFollow=askMiniAI(chart,'when exactly?','en',miniCareer.context);
+check(miniFollow.topic==='career','Mini-AI follow-up context failed');
+check(miniFollow.intent==='timing','Mini-AI timing follow-up failed');
+check(miniFollow.timingWindows.length>0,'Mini-AI timing windows missing');
+const intimacy=askMiniAI(chart,'Sex','en');
+check(intimacy.topic==='love','Mini-AI intimacy topic failed');
+check(intimacy.focus==='intimacy','Mini-AI intimacy focus failed');
+check(/intimacy|sexual/i.test(intimacy.directAnswer),'Mini-AI intimacy answer is generic');
+const odiaMini=askMiniAI(chart,'ମୋତେ ଚାକିରି କେବେ ମିଳିବ?','or');
+check(odiaMini.topic==='career'&&odiaMini.intent==='timing','Odia Mini-AI understanding failed');
+check(/[\u0B00-\u0B7F]/.test(odiaMini.directAnswer),'Odia Mini-AI answer is not localized');
+check(!odiaMini.directAnswer.includes('The current pattern'),'Odia Mini-AI leaked English canned answer');
+const hindiMini=askMiniAI(chart,'मेरी शादी कब होगी?','hi');
+check(hindiMini.topic==='marriage'&&hindiMini.intent==='timing','Hindi Mini-AI understanding failed');
+check(/[\u0900-\u097F]/.test(hindiMini.directAnswer),'Hindi Mini-AI answer is not localized');
+
+console.log('AstroSathi deterministic astrology/location + multilingual Mini-AI regression checks passed');
