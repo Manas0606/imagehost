@@ -18,7 +18,7 @@ concurrency:
 
 env:
   RN_VERSION: '0.86.0'
-  PREMIUM_SERVICE_URL: 'https://astrosathi-premium-webhook-manassamal938-2078s-projects.vercel.app'
+  PREMIUM_SERVICE_URL: 'https://astrosathi-premium-webhook-3jdn6xuqi.vercel.app'
 
 jobs:
   build-and-publish:
@@ -61,19 +61,13 @@ jobs:
 
       - name: Verify Premium webhook service and Neon persistence
         run: |
-          for attempt in 1 2 3 4 5 6; do
-            echo "Premium backend health attempt ${attempt}/6"
-            if curl --fail --silent --show-error --max-time 15 "$PREMIUM_SERVICE_URL/api/health" | grep -q '"ok":true' && \
-               curl --fail --silent --show-error --max-time 15 "$PREMIUM_SERVICE_URL/api/premium-status?email=ci-probe%40astrosathi.invalid&deviceId=ci-probe" | grep -q '"ok":true'; then
-              echo 'Premium webhook + database status endpoint are healthy.'
-              break
-            fi
-            if [ "$attempt" = "6" ]; then
-              echo 'Premium webhook service did not become healthy.' >&2
-              exit 1
-            fi
-            sleep 10
-          done
+          echo 'Health response:'
+          curl --silent --show-error --location --max-time 20 --write-out '\nHTTP %{http_code}\n' "$PREMIUM_SERVICE_URL/api/health" | tee /tmp/premium-health.txt
+          grep -q '"ok":true' /tmp/premium-health.txt
+          echo 'Status/DB response:'
+          curl --silent --show-error --location --max-time 20 --write-out '\nHTTP %{http_code}\n' "$PREMIUM_SERVICE_URL/api/premium-status?email=ci-probe%40astrosathi.invalid&deviceId=ci-probe" | tee /tmp/premium-status.txt
+          grep -q '"ok":true' /tmp/premium-status.txt
+          echo 'Premium webhook + database status endpoint are healthy.'
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -167,7 +161,7 @@ jobs:
           mkdir -p /tmp/astrosathi-site
           cp -R public-dist/. /tmp/astrosathi-site/
           git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.email '41898282+Manas0606@users.noreply.github.com'
           git checkout --orphan gh-pages-temp
           git rm -rf . >/dev/null 2>&1 || true
           find . -mindepth 1 -maxdepth 1 -not -name .git -exec rm -rf {} +
