@@ -6,6 +6,7 @@ root=Path.cwd(); app=root/'generated'/'AstroSathi'; src=root/'mobile'; path=app/
 if not path.exists(): raise SystemExit('Generated App.tsx not found for Mini-AI wrapper')
 shutil.copy2(src/'mini-ai-engine.ts',app/'mini-ai-engine.ts')
 shutil.copy2(src/'local-ai-model.ts',app/'local-ai-model.ts')
+shutil.copy2(src/'local-ai-regression.ts',app/'local-ai-regression.ts')
 text=path.read_text()
 old="import{askMiniAI,type MiniAnswer,type MiniContext}from'./mini-ai';"
 new="import{askMiniAI,type MiniAnswer,type MiniContext}from'./mini-ai-engine';"
