@@ -13,9 +13,10 @@ text=text.replace(
 "export type RemoteEntry = {\n  email?: string;\n  status?: 'approved' | 'stopped' | 'pending' | 'rejected';",
 1)
 
-# While a request is pending, poll Telegram often enough that Approve/Reject feels
-# immediate. This is still lightweight and does not change the durable account sync.
-text=text.replace('export const PREMIUM_POLL_MS = 15 * 1000;','export const PREMIUM_POLL_MS = 5 * 1000;',1)
+# Pending payment decisions are intentionally checked every 3 seconds. The durable
+# GitHub account-sync waits 45 seconds before consuming Telegram updates, so the
+# phone has a large deterministic first-read window for immediate activation.
+text=text.replace('export const PREMIUM_POLL_MS = 15 * 1000;','export const PREMIUM_POLL_MS = 3 * 1000;',1)
 
 pick_pattern=r"function pickEntry\(cfg: PremiumControl, deviceId: string, email\?: string\): RemoteEntry \| undefined \{.*?\n\}"
 pick_repl="""function pickEntry(cfg: PremiumControl, deviceId: string, email?: string): RemoteEntry | undefined {
@@ -24,7 +25,7 @@ pick_repl="""function pickEntry(cfg: PremiumControl, deviceId: string, email?: s
     const accountEntry = cfg.users?.[e];
     if (accountEntry) return accountEntry;
     const deviceEntry = cfg.devices?.[deviceId];
-    if (deviceEntry && normEmail(deviceEntry.email) === e) return deviceEntry;
+    if (deviceEntry && (!deviceEntry.email || normEmail(deviceEntry.email) === e)) return deviceEntry;
     return undefined;
   }
   return cfg.devices?.[deviceId];
@@ -33,11 +34,11 @@ text,count=re.subn(pick_pattern,pick_repl,text,count=1,flags=re.S)
 if count!=1: raise SystemExit('Premium account-entry selector marker not found')
 
 # Immediate UX + durable recovery:
-# - Telegram approval is authoritative enough to unlock the CURRENT installation now.
-# - The encrypted local approval remains until the scheduled admin sync writes the same
-#   request to users[email].
-# - Once that central account entry appears, fetchPremium() clears the local cache and
-#   the account entitlement becomes the durable source of truth for reinstall/login.
+# - Telegram callback unlocks the CURRENT installation immediately.
+# - The encrypted local approval remains until the delayed scheduled sync persists the
+#   same request to users[email].
+# - Once that account entry appears, fetchPremium() switches to the durable server
+#   record with the original approvedAt/expiresAt so reinstall never restarts time.
 local_pattern=r"function localState\(remote:PremiumState,local:LocalPremiumRecord\):PremiumState\{.*?\n\}"
 local_repl="""function localState(remote:PremiumState,local:LocalPremiumRecord):PremiumState{
   const common={...remote,requestId:local.requestId};
@@ -47,23 +48,17 @@ local_repl="""function localState(remote:PremiumState,local:LocalPremiumRecord):
   const approvedAt=local.approvedAt||Date.now(),expiresAt=local.expiresAt||approvedAt+local.durationMinutes*60*1000;
   const now=trustedNow(remote);
   if(now>=expiresAt)return{...common,kind:'expired',requestSubmitted:false,approvedAt,expiresAt,message:'Your premium period has ended. You can renew from the Premium screen.'};
-  return{...common,kind:'active',requestSubmitted:false,approvedAt,expiresAt,message:local.message||'Payment approved. Premium is active now. Your account entitlement is syncing in the background for reinstall recovery.'};
+  return{...common,kind:'active',requestSubmitted:false,approvedAt,expiresAt,message:local.message||'Payment approved. Premium is active. Account recovery backup is syncing in the background.'};
 }"""
 text,count=re.subn(local_pattern,local_repl,text,count=1,flags=re.S)
 if count!=1: raise SystemExit('Premium local-state marker not found')
 
-# The app can acknowledge immediate activation while also being precise that durable
-# account recovery is completed by the background central sync.
-text=text.replace('The user app has been updated.','Premium activated on the user device; account entitlement sync is continuing in the background.')
-text=text.replace('Premium approved. User app updated.','Premium activated. Account recovery sync is continuing in the background.')
-
 for needle in (
-  'export const PREMIUM_POLL_MS = 5 * 1000;',
+  'export const PREMIUM_POLL_MS = 3 * 1000;',
   'const accountEntry = cfg.users?.[e];',
-  'normEmail(deviceEntry.email) === e',
   "kind:'active'",
-  'account entitlement is syncing in the background',
+  'Account recovery backup is syncing in the background',
 ):
   if needle not in text: raise SystemExit(f'Premium recovery patch missing: {needle}')
 path.write_text(text)
-print('AstroSathi Premium approval now unlocks immediately; account/email recovery sync continues in the background')
+print('AstroSathi Premium: immediate Telegram decision every 3s + durable email recovery handoff')
