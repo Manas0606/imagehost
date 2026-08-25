@@ -31,15 +31,31 @@ jobs:
           ref: astrosathi-control
           path: control
           fetch-depth: 0
-      - run: python3 runner/.github/scripts/astrosathi_telegram_admin.py control/premium-control.json
-      - run: |
+      - name: Process Telegram premium decisions
+        run: python3 runner/.github/scripts/astrosathi_telegram_admin.py control/premium-control.json
+      - name: Persist premium entitlement state safely
+        run: |
           cd control
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add premium-control.json
           if git diff --cached --quiet; then
-            echo 'No changes.'
-          else
-            git commit -m 'update control state'
-            git push origin HEAD:astrosathi-control
+            echo 'No premium state changes.'
+            exit 0
           fi
+          git commit -m 'update premium control state'
+
+          # premium-control.json is the durable source of truth. Rebase before push
+          # so an unrelated branch update can never make an already-consumed
+          # Telegram approval disappear.
+          for attempt in 1 2 3; do
+            echo "Premium state push attempt ${attempt}/3"
+            if git pull --rebase origin astrosathi-control && git push origin HEAD:astrosathi-control; then
+              echo 'Premium entitlement persisted.'
+              exit 0
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep 2
+          done
+          echo 'ERROR: Premium decision was processed but durable state could not be pushed.' >&2
+          exit 1
