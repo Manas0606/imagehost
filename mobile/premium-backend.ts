@@ -2,7 +2,7 @@ import {NativeModules} from 'react-native';
 
 const {AstroNative}=NativeModules;
 
-export const PREMIUM_SERVICE_URL='https://astrosathi-premium-webhook-manassamal938-2078s-projects.vercel.app';
+export const PREMIUM_SERVICE_URL='https://astro-sathi-approval.lovable.app';
 export const PREMIUM_POLL_MS=3*1000;
 export const PREMIUM_STALE_MS=60*1000;
 export const DEFAULT_PREMIUM_PRICE_INR=20;
@@ -40,17 +40,30 @@ async function readLocal():Promise<LocalRequest|undefined>{
 async function saveLocal(x:LocalRequest){try{if(AstroNative?.savePremiumLocalState)await AstroNative.savePremiumLocalState(JSON.stringify(x))}catch{}}
 async function clearLocal(){try{if(AstroNative?.clearPremiumLocalState)await AstroNative.clearPremiumLocalState()}catch{}}
 
+function asTime(v:any):number|undefined{
+ if(v==null||v==='')return undefined;
+ if(typeof v==='number'&&Number.isFinite(v))return v;
+ const numeric=Number(v);
+ if(typeof v==='string'&&/^\d+(?:\.\d+)?$/.test(v.trim())&&Number.isFinite(numeric))return numeric;
+ const parsed=Date.parse(String(v));
+ return Number.isFinite(parsed)?parsed:undefined;
+}
 function asNumber(v:any){const n=Number(v);return Number.isFinite(n)?n:undefined}
 function asState(data:any,local?:LocalRequest):PremiumState{
  const now=Date.now();
- const kind=(['active','pending','stopped','rejected','expired'].includes(String(data?.kind))?String(data.kind):'pending') as PremiumStateKind;
+ const rawKind=String(data?.kind||'pending');
+ const kind=(['active','pending','stopped','rejected','expired'].includes(rawKind)?rawKind:'pending') as PremiumStateKind;
  const requestId=String(data?.requestId||local?.requestId||'')||undefined;
+ const approvedAt=asTime(data?.approvedAt);
+ const expiresAt=asTime(data?.expiresAt);
+ const serverNow=asTime(data?.serverNow)||now;
+ const defaultMessage=kind==='active'?'Payment approved. Premium is active.':kind==='pending'?'Premium request is waiting for admin approval.':kind==='rejected'?'Premium request was rejected.':kind==='stopped'?'Premium access was stopped.':'Premium access has expired.';
  return{
   kind,
-  message:String(data?.message||''),
-  approvedAt:asNumber(data?.approvedAt),
-  expiresAt:asNumber(data?.expiresAt),
-  serverNow:asNumber(data?.serverNow)||now,
+  message:String(data?.message||defaultMessage),
+  approvedAt,
+  expiresAt,
+  serverNow,
   syncedAt:now,
   priceInr:asNumber(data?.priceInr)||DEFAULT_PREMIUM_PRICE_INR,
   durationMinutes:asNumber(data?.durationMinutes)||DEFAULT_PREMIUM_DURATION_MINUTES,
@@ -62,12 +75,14 @@ function asState(data:any,local?:LocalRequest):PremiumState{
 }
 
 export async function fetchPremium(deviceId:string,email?:string):Promise<PremiumState>{
+ const e=normEmail(email);
+ if(!e||!e.includes('@'))throw new Error('Login email is required to check Premium.');
  const local=await readLocal();
- const params=[`email=${encodeURIComponent(normEmail(email))}`,`deviceId=${encodeURIComponent(deviceId||'')}`];
+ const params=[`email=${encodeURIComponent(e)}`,`deviceId=${encodeURIComponent(deviceId||'')}`];
  if(local?.requestId)params.push(`requestId=${encodeURIComponent(local.requestId)}`);
- const res=await fetch(`${PREMIUM_SERVICE_URL}/api/premium-status?${params.join('&')}`,{headers:{Accept:'application/json','Cache-Control':'no-cache'}});
+ const res=await fetch(`${PREMIUM_SERVICE_URL}/api/premium/status?${params.join('&')}`,{headers:{Accept:'application/json','Cache-Control':'no-cache'}});
  const body=await res.json().catch(()=>({}));
- if(!res.ok||!body?.ok)throw new Error(body?.message||body?.error||`Premium service returned ${res.status}.`);
+ if(!res.ok||body?.error)throw new Error(body?.message||body?.error||`Premium service returned ${res.status}.`);
  const st=asState(body,local);
  if(local&&['active','rejected','stopped','expired'].includes(st.kind))await clearLocal();
  return st;
@@ -77,12 +92,12 @@ export async function sendTelegramPremiumRequest(state:PremiumState,payload:Prem
  const email=normEmail(payload.email),deviceId=(payload.deviceId||'').trim(),utr=(payload.utr||'').trim();
  if(!email||!email.includes('@'))throw new Error('Login email is required for Premium recovery.');
  if(!deviceId||!utr)throw new Error('Device ID and UTR are required.');
- const res=await fetch(`${PREMIUM_SERVICE_URL}/api/premium-request`,{
+ const res=await fetch(`${PREMIUM_SERVICE_URL}/api/premium/request`,{
   method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
-  body:JSON.stringify({name:(payload.name||'').trim(),email,deviceId,utr}),
+  body:JSON.stringify({email,deviceId,utr}),
  });
  const body=await res.json().catch(()=>({}));
- if(!res.ok||!body?.ok)throw new Error(body?.message||body?.error||`Premium request failed (${res.status}).`);
+ if(!res.ok||body?.error)throw new Error(body?.message||body?.error||`Premium request failed (${res.status}).`);
  const requestId=String(body.requestId||'');
  if(!requestId)throw new Error('Premium service did not return a request ID.');
  await saveLocal({requestId,email,deviceId,createdAt:Date.now()});
