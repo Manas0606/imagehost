@@ -40,7 +40,14 @@ jobs:
           test -f mobile/AstroNativeModule.kt
           test -f mobile/AstroNativePackage.kt
           test -f mobile/install-overlay.py
+          test -f mobile/set-premium-duration-30m-v1.py
           test -f pages/index.html
+
+      - name: Verify live Premium is 30 minutes
+        run: |
+          curl --fail --silent --show-error --max-time 20 \
+            'https://raw.githubusercontent.com/Manas0606/imagehost/astrosathi-control/premium-control.json' \
+            | python3 -c "import json,sys; x=json.load(sys.stdin); assert int(x['config']['durationMinutes'])==30; print('Live Premium duration: 30 minutes')"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -61,6 +68,14 @@ jobs:
 
       - name: Install AstroSathi app overlay
         run: python3 mobile/install-overlay.py
+
+      - name: Verify generated 30-minute Premium flow
+        run: |
+          grep -Fq 'DEFAULT_PREMIUM_DURATION_MINUTES = 30' generated/AstroSathi/premium.ts
+          grep -Fq 'durationMinutes=safePositiveInt(state.durationMinutes,DEFAULT_PREMIUM_DURATION_MINUTES)' generated/AstroSathi/premium.ts
+          grep -Fq 'premium.durationMinutes||30' generated/AstroSathi/App.tsx
+          ! grep -Fq 'premium.durationMinutes||360' generated/AstroSathi/App.tsx
+          echo 'Generated Premium display and approval expiry are locked to current 30-minute configuration.'
 
       - name: Install dependencies
         working-directory: generated/AstroSathi
