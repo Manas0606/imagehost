@@ -1,23 +1,25 @@
-name: App Control Sync (Legacy Manual Only)
+name: App Control Sync
 
-# Legacy processor retained only for emergency/manual inspection.
-# It must NOT poll Telegram on a schedule because AstroSathi Premium now uses
-# a single webhook consumer. Running getUpdates alongside a webhook creates
-# an approval race and can make the Android app miss admin decisions.
+# The Android app polls Telegram every few seconds while a request is pending so the
+# user sees Approve/Reject immediately. This durable sync deliberately waits before
+# reading Telegram updates, giving the phone first priority, then persists the same
+# decision under users[email] for uninstall/reinstall recovery.
 on:
+  schedule:
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: app-control-sync-legacy
+  group: app-control-sync
   cancel-in-progress: false
 
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 7
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,9 +30,13 @@ jobs:
           ref: astrosathi-control
           path: control
           fetch-depth: 0
-      - name: Legacy manual Telegram premium decision processor
+      - name: Give Android immediate approval priority
+        run: |
+          echo 'Waiting 45 seconds so a pending AstroSathi app can observe the Telegram callback first.'
+          sleep 45
+      - name: Persist Telegram decision to account entitlement
         run: python3 runner/.github/scripts/astrosathi_telegram_admin.py control/premium-control.json
-      - name: Persist legacy premium entitlement state safely
+      - name: Publish durable premium account state
         run: |
           cd control
           git config user.name 'github-actions[bot]'
