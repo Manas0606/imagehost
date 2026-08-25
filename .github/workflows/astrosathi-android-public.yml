@@ -18,7 +18,6 @@ concurrency:
 
 env:
   RN_VERSION: '0.86.0'
-  PREMIUM_SERVICE_URL: 'https://astro-sathi-approval.lovable.app'
 
 jobs:
   build-and-publish:
@@ -36,8 +35,6 @@ jobs:
           test -f mobile/App.tsx
           test -f mobile/astrology.ts
           test -f mobile/premium.ts
-          test -f mobile/premium-backend.ts
-          test -f mobile/install-premium-backend-v1.py
           test -f mobile/auth.ts
           test -f mobile/guidance.ts
           test -f mobile/mini-ai.ts
@@ -59,19 +56,11 @@ jobs:
           test -f pages/index.html
           test -f pages/reset.html
 
-      - name: Verify Premium approval service
+      - name: Verify durable premium control source
         run: |
-          echo 'Premium health:'
-          curl --fail --silent --show-error --location --max-time 20 "$PREMIUM_SERVICE_URL/api/health" | tee /tmp/premium-health.json
-          grep -q '"ok":true' /tmp/premium-health.json
-          grep -q '"database":"ok"' /tmp/premium-health.json
-          grep -q '"telegramConfigured":true' /tmp/premium-health.json
-          grep -q '"webhookSecretConfigured":true' /tmp/premium-health.json
-          echo 'Premium status/database probe:'
-          curl --fail --silent --show-error --location --max-time 20 "$PREMIUM_SERVICE_URL/api/premium/status?email=ci-probe%40example.com&deviceId=ci-probe" | tee /tmp/premium-status.json
-          grep -q '"serverNow"' /tmp/premium-status.json
-          grep -q '"kind"' /tmp/premium-status.json
-          echo 'Premium approval backend, database and Telegram configuration are healthy.'
+          curl --fail --silent --show-error --max-time 20 \
+            'https://raw.githubusercontent.com/Manas0606/imagehost/astrosathi-control/premium-control.json' \
+            | python3 -c "import json,sys; x=json.load(sys.stdin); assert x.get('global',{}).get('premiumEnabled',True) in (True,False); assert 'config' in x; print('Premium control source healthy')"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -93,13 +82,16 @@ jobs:
       - name: Install AstroSathi overlay
         run: python3 mobile/install-overlay.py
 
-      - name: Verify generated Premium transport
+      - name: Verify generated immediate Premium flow
         run: |
-          grep -q "https://astro-sathi-approval.lovable.app" generated/AstroSathi/premium.ts
-          grep -q '/api/premium/status' generated/AstroSathi/premium.ts
-          grep -q '/api/premium/request' generated/AstroSathi/premium.ts
-          ! grep -q 'getUpdates' generated/AstroSathi/premium.ts
-          ! grep -q 'api.telegram.org/bot' generated/AstroSathi/premium.ts
+          grep -q 'PREMIUM_CONTROL_URL' generated/AstroSathi/premium.ts
+          grep -q 'PREMIUM_POLL_MS = 3 \* 1000' generated/AstroSathi/premium.ts
+          grep -q 'getUpdates' generated/AstroSathi/premium.ts
+          grep -q 'callback_query' generated/AstroSathi/premium.ts
+          grep -q 'cfg.users?.\[e\]' generated/AstroSathi/premium.ts
+          grep -q 'keyboardShouldPersistTaps="handled"' generated/AstroSathi/App.tsx
+          ! grep -q 'scrollToEnd' generated/AstroSathi/App.tsx
+          ! grep -q 'keyboardType="number-pad"' generated/AstroSathi/App.tsx
 
       - name: Install JavaScript dependencies
         working-directory: generated/AstroSathi
@@ -127,6 +119,7 @@ jobs:
               break
             fi
             if [ "$attempt" -lt 3 ]; then
+              echo "Transient build failure; retrying in 20 seconds..."
               sleep 20
             fi
           done
@@ -145,6 +138,8 @@ jobs:
           date -u +'%Y-%m-%dT%H:%M:%SZ' > public-dist/build.txt
           echo "$GITHUB_RUN_ID" > public-dist/run.txt
           touch public-dist/.nojekyll
+          ls -lh public-dist/downloads/AstroSathi.apk
+          cat public-dist/downloads/AstroSathi.apk.sha256
 
       - name: Upload installable APK artifact
         uses: actions/upload-artifact@v4
