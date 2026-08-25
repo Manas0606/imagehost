@@ -12,6 +12,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: astrosathi-android-publish
+  cancel-in-progress: true
+
 env:
   RN_VERSION: '0.86.0'
 
@@ -47,6 +51,8 @@ jobs:
           test -f mobile/install-kundli-explain-v1.py
           test -f mobile/install-life-patterns-v1.py
           test -f mobile/remove-pattern-setting-v1.py
+          test -f mobile/fix-premium-account-recovery-v1.py
+          test -f mobile/fix-premium-keyboard-v1.py
           test -f pages/index.html
           test -f pages/reset.html
 
