@@ -30,6 +30,12 @@ jobs:
           test -f mobile/App.tsx
           test -f mobile/astrology.ts
           test -f mobile/guidance.ts
+          test -f mobile/mini-ai.ts
+          test -f mobile/mini-ai-engine.ts
+          test -f mobile/local-ai-model.ts
+          test -f mobile/local-ai-regression.ts
+          test -f mobile/chat-engine-regression.ts
+          test -f mobile/life-patterns-regression.ts
           test -f mobile/accuracy-tests.ts
           test -f mobile/AstroNativeModule.kt
           test -f mobile/AstroNativePackage.kt
@@ -64,9 +70,13 @@ jobs:
         working-directory: generated/AstroSathi
         run: npx tsc --noEmit
 
-      - name: Deterministic astrology regression checks
+      - name: Astrology, local AI, chat engine and life-pattern regression checks
         working-directory: generated/AstroSathi
-        run: npx --yes tsx@4.20.3 accuracy-tests.ts
+        run: |
+          npx --yes tsx@4.20.3 accuracy-tests.ts
+          npx --yes tsx@4.20.3 local-ai-regression.ts
+          npx --yes tsx@4.20.3 chat-engine-regression.ts
+          npx --yes tsx@4.20.3 life-patterns-regression.ts
 
       - name: Build release APK
         working-directory: generated/AstroSathi/android
