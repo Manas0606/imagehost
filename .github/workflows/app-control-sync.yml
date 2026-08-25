@@ -1,20 +1,17 @@
-name: App Control Sync
+name: App Control Sync (Legacy Manual Only)
 
+# Legacy processor retained only for emergency/manual inspection.
+# It must NOT poll Telegram on a schedule because AstroSathi Premium now uses
+# a single webhook consumer. Running getUpdates alongside a webhook creates
+# an approval race and can make the Android app miss admin decisions.
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '*/5 * * * *'
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/app-control-sync.yml'
-      - '.github/scripts/astrosathi_telegram_admin.py'
 
 permissions:
   contents: write
 
 concurrency:
-  group: app-control-sync
+  group: app-control-sync-legacy
   cancel-in-progress: false
 
 jobs:
@@ -31,9 +28,9 @@ jobs:
           ref: astrosathi-control
           path: control
           fetch-depth: 0
-      - name: Process Telegram premium decisions
+      - name: Legacy manual Telegram premium decision processor
         run: python3 runner/.github/scripts/astrosathi_telegram_admin.py control/premium-control.json
-      - name: Persist premium entitlement state safely
+      - name: Persist legacy premium entitlement state safely
         run: |
           cd control
           git config user.name 'github-actions[bot]'
@@ -44,18 +41,5 @@ jobs:
             exit 0
           fi
           git commit -m 'update premium control state'
-
-          # premium-control.json is the durable source of truth. Rebase before push
-          # so an unrelated branch update can never make an already-consumed
-          # Telegram approval disappear.
-          for attempt in 1 2 3; do
-            echo "Premium state push attempt ${attempt}/3"
-            if git pull --rebase origin astrosathi-control && git push origin HEAD:astrosathi-control; then
-              echo 'Premium entitlement persisted.'
-              exit 0
-            fi
-            git rebase --abort >/dev/null 2>&1 || true
-            sleep 2
-          done
-          echo 'ERROR: Premium decision was processed but durable state could not be pushed.' >&2
-          exit 1
+          git pull --rebase origin astrosathi-control
+          git push origin HEAD:astrosathi-control
