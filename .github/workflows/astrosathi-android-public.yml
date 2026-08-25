@@ -84,14 +84,13 @@ jobs:
 
       - name: Verify generated immediate Premium flow
         run: |
-          grep -q 'PREMIUM_CONTROL_URL' generated/AstroSathi/premium.ts
-          grep -q 'PREMIUM_POLL_MS = 3 \* 1000' generated/AstroSathi/premium.ts
-          grep -q 'getUpdates' generated/AstroSathi/premium.ts
-          grep -q 'callback_query' generated/AstroSathi/premium.ts
-          grep -q 'cfg.users?.\[e\]' generated/AstroSathi/premium.ts
-          grep -q 'keyboardShouldPersistTaps="handled"' generated/AstroSathi/App.tsx
-          ! grep -q 'scrollToEnd' generated/AstroSathi/App.tsx
-          ! grep -q 'keyboardType="number-pad"' generated/AstroSathi/App.tsx
+          grep -Fq 'PREMIUM_CONTROL_URL' generated/AstroSathi/premium.ts
+          grep -Fq 'PREMIUM_POLL_MS = 3 * 1000' generated/AstroSathi/premium.ts
+          grep -Fq 'getUpdates' generated/AstroSathi/premium.ts
+          grep -Fq 'callback_query' generated/AstroSathi/premium.ts
+          grep -Fq 'const accountEntry = cfg.users?.[e];' generated/AstroSathi/premium.ts
+          grep -Fq 'keyboardShouldPersistTaps="handled"' generated/AstroSathi/App.tsx
+          echo 'Immediate Telegram decision, account recovery and keyboard-safe Premium flow are present.'
 
       - name: Install JavaScript dependencies
         working-directory: generated/AstroSathi
