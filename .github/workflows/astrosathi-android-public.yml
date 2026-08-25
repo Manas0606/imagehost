@@ -18,6 +18,7 @@ concurrency:
 
 env:
   RN_VERSION: '0.86.0'
+  PREMIUM_SERVICE_URL: 'https://astrosathi-premium-webhook-manassamal938-2078s-projects.vercel.app'
 
 jobs:
   build-and-publish:
@@ -35,6 +36,8 @@ jobs:
           test -f mobile/App.tsx
           test -f mobile/astrology.ts
           test -f mobile/premium.ts
+          test -f mobile/premium-backend.ts
+          test -f mobile/install-premium-backend-v1.py
           test -f mobile/auth.ts
           test -f mobile/guidance.ts
           test -f mobile/mini-ai.ts
@@ -56,6 +59,22 @@ jobs:
           test -f pages/index.html
           test -f pages/reset.html
 
+      - name: Verify Premium webhook service and Neon persistence
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            echo "Premium backend health attempt ${attempt}/6"
+            if curl --fail --silent --show-error --max-time 15 "$PREMIUM_SERVICE_URL/api/health" | grep -q '"ok":true' && \
+               curl --fail --silent --show-error --max-time 15 "$PREMIUM_SERVICE_URL/api/premium-status?email=ci-probe%40astrosathi.invalid&deviceId=ci-probe" | grep -q '"ok":true'; then
+              echo 'Premium webhook + database status endpoint are healthy.'
+              break
+            fi
+            if [ "$attempt" = "6" ]; then
+              echo 'Premium webhook service did not become healthy.' >&2
+              exit 1
+            fi
+            sleep 10
+          done
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -75,6 +94,14 @@ jobs:
 
       - name: Install AstroSathi overlay
         run: python3 mobile/install-overlay.py
+
+      - name: Verify generated Premium transport
+        run: |
+          grep -q 'PREMIUM_SERVICE_URL' generated/AstroSathi/premium.ts
+          grep -q '/api/premium-status' generated/AstroSathi/premium.ts
+          grep -q '/api/premium-request' generated/AstroSathi/premium.ts
+          ! grep -q 'getUpdates' generated/AstroSathi/premium.ts
+          ! grep -q 'api.telegram.org/bot' generated/AstroSathi/premium.ts
 
       - name: Install JavaScript dependencies
         working-directory: generated/AstroSathi
