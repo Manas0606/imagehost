@@ -149,22 +149,3 @@ jobs:
           git commit -m 'publish: AstroSathi Android APK'
           git branch -M gh-pages
           git push --force origin gh-pages
-
-      - name: Record CI status
-        if: always()
-        env:
-          RUN_ID: ${{ github.run_id }}
-          JOB_STATUS: ${{ job.status }}
-          HEAD_SHA: ${{ github.sha }}
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git reset --hard || true
-          git clean -fdx || true
-          git fetch origin astrosathi-control
-          git checkout -B astrosathi-control origin/astrosathi-control
-          printf 'run_id=%s\nstatus=%s\nhead_sha=%s\nrecorded_at=%s\n' "$RUN_ID" "$JOB_STATUS" "$HEAD_SHA" "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" > ci-android-status.txt
-          git add ci-android-status.txt
-          git commit -m 'chore: record AstroSathi Android CI status' || true
-          git pull --rebase origin astrosathi-control || true
-          git push origin astrosathi-control || true
