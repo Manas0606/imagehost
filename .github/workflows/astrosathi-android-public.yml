@@ -37,12 +37,16 @@ jobs:
           test -f mobile/mini-ai-engine.ts
           test -f mobile/local-ai-model.ts
           test -f mobile/local-ai-regression.ts
+          test -f mobile/life-patterns.ts
+          test -f mobile/life-patterns-regression.ts
           test -f mobile/location.ts
           test -f mobile/accuracy-tests.ts
           test -f mobile/AstroNativeModule.kt
           test -f mobile/AstroNativePackage.kt
           test -f mobile/install-overlay.py
           test -f mobile/install-kundli-explain-v1.py
+          test -f mobile/install-life-patterns-v1.py
+          test -f mobile/remove-pattern-setting-v1.py
           test -f pages/index.html
           test -f pages/reset.html
 
@@ -74,11 +78,12 @@ jobs:
         working-directory: generated/AstroSathi
         run: npx tsc --noEmit
 
-      - name: Deterministic astrology, location and local AI regression checks
+      - name: Deterministic astrology, location, local AI and life-pattern regression checks
         working-directory: generated/AstroSathi
         run: |
           npx --yes tsx@4.20.3 accuracy-tests.ts
           npx --yes tsx@4.20.3 local-ai-regression.ts
+          npx --yes tsx@4.20.3 life-patterns-regression.ts
 
       - name: Build release APK
         working-directory: generated/AstroSathi/android
