@@ -18,7 +18,7 @@ concurrency:
 
 env:
   RN_VERSION: '0.86.0'
-  PREMIUM_SERVICE_URL: 'https://astrosathi-premium-webhook-3jdn6xuqi.vercel.app'
+  PREMIUM_SERVICE_URL: 'https://astro-sathi-approval.lovable.app'
 
 jobs:
   build-and-publish:
@@ -59,15 +59,19 @@ jobs:
           test -f pages/index.html
           test -f pages/reset.html
 
-      - name: Verify Premium webhook service and Neon persistence
+      - name: Verify Premium approval service
         run: |
-          echo 'Health response:'
-          curl --silent --show-error --location --max-time 20 --write-out '\nHTTP %{http_code}\n' "$PREMIUM_SERVICE_URL/api/health" | tee /tmp/premium-health.txt
-          grep -q '"ok":true' /tmp/premium-health.txt
-          echo 'Status/DB response:'
-          curl --silent --show-error --location --max-time 20 --write-out '\nHTTP %{http_code}\n' "$PREMIUM_SERVICE_URL/api/premium-status?email=ci-probe%40astrosathi.invalid&deviceId=ci-probe" | tee /tmp/premium-status.txt
-          grep -q '"ok":true' /tmp/premium-status.txt
-          echo 'Premium webhook + database status endpoint are healthy.'
+          echo 'Premium health:'
+          curl --fail --silent --show-error --location --max-time 20 "$PREMIUM_SERVICE_URL/api/health" | tee /tmp/premium-health.json
+          grep -q '"ok":true' /tmp/premium-health.json
+          grep -q '"database":"ok"' /tmp/premium-health.json
+          grep -q '"telegramConfigured":true' /tmp/premium-health.json
+          grep -q '"webhookSecretConfigured":true' /tmp/premium-health.json
+          echo 'Premium status/database probe:'
+          curl --fail --silent --show-error --location --max-time 20 "$PREMIUM_SERVICE_URL/api/premium/status?email=ci-probe%40example.com&deviceId=ci-probe" | tee /tmp/premium-status.json
+          grep -q '"serverNow"' /tmp/premium-status.json
+          grep -q '"kind"' /tmp/premium-status.json
+          echo 'Premium approval backend, database and Telegram configuration are healthy.'
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -91,9 +95,9 @@ jobs:
 
       - name: Verify generated Premium transport
         run: |
-          grep -q 'PREMIUM_SERVICE_URL' generated/AstroSathi/premium.ts
-          grep -q '/api/premium-status' generated/AstroSathi/premium.ts
-          grep -q '/api/premium-request' generated/AstroSathi/premium.ts
+          grep -q "https://astro-sathi-approval.lovable.app" generated/AstroSathi/premium.ts
+          grep -q '/api/premium/status' generated/AstroSathi/premium.ts
+          grep -q '/api/premium/request' generated/AstroSathi/premium.ts
           ! grep -q 'getUpdates' generated/AstroSathi/premium.ts
           ! grep -q 'api.telegram.org/bot' generated/AstroSathi/premium.ts
 
@@ -123,7 +127,6 @@ jobs:
               break
             fi
             if [ "$attempt" -lt 3 ]; then
-              echo "Transient Gradle/build failure; waiting 20 seconds before retry..."
               sleep 20
             fi
           done
@@ -142,8 +145,6 @@ jobs:
           date -u +'%Y-%m-%dT%H:%M:%SZ' > public-dist/build.txt
           echo "$GITHUB_RUN_ID" > public-dist/run.txt
           touch public-dist/.nojekyll
-          ls -lh public-dist/downloads/AstroSathi.apk
-          cat public-dist/downloads/AstroSathi.apk.sha256
 
       - name: Upload installable APK artifact
         uses: actions/upload-artifact@v4
@@ -161,7 +162,7 @@ jobs:
           mkdir -p /tmp/astrosathi-site
           cp -R public-dist/. /tmp/astrosathi-site/
           git config user.name 'github-actions[bot]'
-          git config user.email '41898282+Manas0606@users.noreply.github.com'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git checkout --orphan gh-pages-temp
           git rm -rf . >/dev/null 2>&1 || true
           find . -mindepth 1 -maxdepth 1 -not -name .git -exec rm -rf {} +
