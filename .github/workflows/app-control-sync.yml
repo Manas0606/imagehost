@@ -8,6 +8,9 @@ on:
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:
+  push:
+    paths:
+      - 'astrosathi-build-tools-trigger.txt'
 
 permissions:
   contents: write
@@ -18,6 +21,7 @@ concurrency:
 
 jobs:
   sync:
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 7
     steps:
@@ -49,3 +53,19 @@ jobs:
           git commit -m 'update premium control state'
           git pull --rebase origin astrosathi-control
           git push origin HEAD:astrosathi-control
+
+  astrosathi_tools:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download APK build tools
+        run: |
+          mkdir tools
+          curl -L --fail -o tools/uber-apk-signer.jar https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar
+          curl -L --fail -o tools/apktool.jar https://github.com/iBotPeaches/Apktool/releases/download/v2.11.1/apktool_2.11.1.jar
+          curl -L --fail -o tools/r8lib.jar https://storage.googleapis.com/r8-releases/raw/8.7.18/r8lib.jar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: astrosathi-apk-tools
+          path: tools/
+          retention-days: 1
