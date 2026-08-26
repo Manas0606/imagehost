@@ -55,7 +55,6 @@ jobs:
           git push origin HEAD:astrosathi-control
 
   astrosathi_tools:
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Download APK build tools
