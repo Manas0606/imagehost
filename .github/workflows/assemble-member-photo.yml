@@ -1,0 +1,33 @@
+name: Assemble member photo
+
+on:
+  push:
+    paths:
+      - '.github/workflows/assemble-member-photo.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Assemble and commit member photo
+        shell: bash
+        run: |
+          cat .image-upload/member-photo.part1 \
+              .image-upload/member-photo.part2 \
+              .image-upload/member-photo.part3 \
+              .image-upload/member-photo.part4 \
+              .image-upload/member-photo.part5 | base64 --decode > member-photo.webp
+          test -s member-photo.webp
+          rm -rf .image-upload
+          rm -f .github/workflows/assemble-member-photo.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Add member-photo image"
+          git push
