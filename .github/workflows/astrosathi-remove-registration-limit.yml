@@ -1,0 +1,29 @@
+name: AstroSathi Remove Registration Limit
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  remove-limit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove practical registration cap
+        shell: bash
+        run: |
+          set -u
+          BASE='https://ep-orange-snow-a6j71rhq.apirest.us-west-2.aws.neon.tech/neondb/rest/v1/rpc'
+          : > result.txt
+          for ACTION in astrosathi_set_default_registration_limit astrosathi_set_today_registration_limit; do
+            CODE=$(curl -sS -o body.json -w '%{http_code}' -X POST "$BASE/$ACTION" -H 'Content-Type: application/json' -H 'Accept: application/json' --data '{"p_limit":2147483647}') || CODE='curl_error'
+            echo "$ACTION HTTP $CODE" >> result.txt
+            cat body.json >> result.txt 2>/dev/null || true
+            echo >> result.txt
+          done
+          CODE=$(curl -sS -o status.json -w '%{http_code}' -X POST "$BASE/astrosathi_registration_status" -H 'Content-Type: application/json' -H 'Accept: application/json' --data '{}') || CODE='curl_error'
+          echo "status HTTP $CODE" >> result.txt
+          cat status.json >> result.txt 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: astrosathi-registration-limit-result
+          path: result.txt
+          retention-days: 1
