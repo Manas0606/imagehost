@@ -1,0 +1,96 @@
+name: Build AstroJeevan Cross Platform
+
+on:
+  push:
+    branches: [astrojeevan-flutter-build]
+    paths:
+      - 'astrojeevan-final/**'
+      - '.github/workflows/build-astrojeevan-cross-platform.yml'
+  workflow_dispatch:
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Create clean Flutter project
+        run: |
+          rm -rf build-final
+          mkdir build-final
+          cd build-final
+          flutter create . --platforms=android,ios --org com.astrojeevan --project-name astrojeevan
+          tar -xzf ../astrojeevan-final/source.tar.gz
+          rm -f test/widget_test.dart
+      - name: Configure Android biometric host
+        run: |
+          cat > build-final/android/app/src/main/kotlin/com/astrojeevan/astrojeevan/MainActivity.kt <<'KOTLIN'
+          package com.astrojeevan.astrojeevan
+          import io.flutter.embedding.android.FlutterFragmentActivity
+          class MainActivity : FlutterFragmentActivity()
+          KOTLIN
+      - name: Get dependencies
+        working-directory: build-final
+        run: flutter pub get
+      - name: Generate app icons
+        working-directory: build-final
+        run: dart run flutter_launcher_icons
+      - name: Analyze
+        working-directory: build-final
+        run: flutter analyze
+      - name: Build Android release APK
+        working-directory: build-final
+        run: flutter build apk --release
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AstroJeevan-Android-APK
+          path: build-final/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 30
+
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Create clean Flutter project
+        run: |
+          rm -rf build-final
+          mkdir build-final
+          cd build-final
+          flutter create . --platforms=android,ios --org com.astrojeevan --project-name astrojeevan
+          tar -xzf ../astrojeevan-final/source.tar.gz
+          rm -f test/widget_test.dart
+      - name: Configure Face ID usage description
+        run: |
+          /usr/libexec/PlistBuddy -c "Add :NSFaceIDUsageDescription string Use Face ID to unlock AstroJeevan." build-final/ios/Runner/Info.plist || true
+      - name: Get dependencies
+        working-directory: build-final
+        run: flutter pub get
+      - name: Generate app icons
+        working-directory: build-final
+        run: dart run flutter_launcher_icons
+      - name: Analyze
+        working-directory: build-final
+        run: flutter analyze
+      - name: Build iOS without signing
+        working-directory: build-final
+        run: flutter build ios --release --no-codesign
+      - name: Package unsigned iOS app
+        run: |
+          cd build-final/build/ios/iphoneos
+          ditto -c -k --sequesterRsrc --keepParent Runner.app AstroJeevan-iOS-Unsigned-App.zip
+      - name: Upload iOS validation build
+        uses: actions/upload-artifact@v4
+        with:
+          name: AstroJeevan-iOS-Unsigned-App
+          path: build-final/build/ios/iphoneos/AstroJeevan-iOS-Unsigned-App.zip
+          if-no-files-found: error
+          retention-days: 30
