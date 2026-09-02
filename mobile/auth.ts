@@ -10,6 +10,8 @@ async function post(path:string,body:any):Promise<ApiResult>{
     headers:{
       'Content-Type':'application/json',
       'Accept':'application/json',
+      'Origin':APP_CALLBACK,
+      'Referer':APP_CALLBACK,
     },
     body:JSON.stringify(body),
   });
