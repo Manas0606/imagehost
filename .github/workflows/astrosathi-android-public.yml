@@ -59,7 +59,7 @@ jobs:
       - name: Verify durable premium control source
         run: |
           curl --fail --silent --show-error --max-time 20 \
-            'https://raw.githubusercontent.com/Manas0606/imagehost/jyotishg-control/premium-control.json' \
+            'https://raw.githubusercontent.com/Manas0606/imagehost/astrosathi-control/premium-control.json' \
             | python3 -c "import json,sys; x=json.load(sys.stdin); assert x.get('global',{}).get('premiumEnabled',True) in (True,False); assert 'config' in x; print('Premium control source healthy')"
 
       - name: Setup Node

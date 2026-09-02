@@ -46,7 +46,7 @@ jobs:
       - name: Verify live Premium is 30 minutes
         run: |
           curl --fail --silent --show-error --max-time 20 \
-            'https://raw.githubusercontent.com/Manas0606/imagehost/jyotishg-control/premium-control.json' \
+            'https://raw.githubusercontent.com/Manas0606/imagehost/astrosathi-control/premium-control.json' \
             | python3 -c "import json,sys; x=json.load(sys.stdin); assert int(x['config']['durationMinutes'])==30; print('Live Premium duration: 30 minutes')"
 
       - name: Setup Node
