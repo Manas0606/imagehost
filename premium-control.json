@@ -1,0 +1,13 @@
+{
+  "global": {
+    "premiumEnabled": true,
+    "message": ""
+  },
+  "config": {
+    "priceInr": 20,
+    "durationMinutes": 30,
+    "telegramAdminReady": true
+  },
+  "users": {},
+  "requests": {}
+}
