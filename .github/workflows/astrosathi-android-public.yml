@@ -34,7 +34,6 @@ jobs:
         run: |
           test -f mobile/App.tsx
           test -f mobile/astrology.ts
-          test -f mobile/premium.ts
           test -f mobile/auth.ts
           test -f mobile/guidance.ts
           test -f mobile/mini-ai.ts
@@ -51,16 +50,9 @@ jobs:
           test -f mobile/install-kundli-explain-v1.py
           test -f mobile/install-life-patterns-v1.py
           test -f mobile/remove-pattern-setting-v1.py
-          test -f mobile/fix-premium-account-recovery-v1.py
-          test -f mobile/fix-premium-keyboard-v1.py
+          test -f mobile/remove-premium-v1.py
           test -f pages/index.html
           test -f pages/reset.html
-
-      - name: Verify durable premium control source
-        run: |
-          curl --fail --silent --show-error --max-time 20 \
-            'https://raw.githubusercontent.com/Manas0606/imagehost/astrosathi-control/premium-control.json' \
-            | python3 -c "import json,sys; x=json.load(sys.stdin); assert x.get('global',{}).get('premiumEnabled',True) in (True,False); assert 'config' in x; print('Premium control source healthy')"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -82,15 +74,14 @@ jobs:
       - name: Install jyotishg overlay
         run: python3 mobile/install-overlay.py
 
-      - name: Verify generated immediate Premium flow
+      - name: Verify Premium, Telegram and admin flows are removed
         run: |
-          grep -Fq 'PREMIUM_CONTROL_URL' generated/JyotishG/premium.ts
-          grep -Fq 'PREMIUM_POLL_MS = 3 * 1000' generated/JyotishG/premium.ts
-          grep -Fq 'getUpdates' generated/JyotishG/premium.ts
-          grep -Fq 'callback_query' generated/JyotishG/premium.ts
-          grep -Fq 'const accountEntry = cfg.users?.[e];' generated/JyotishG/premium.ts
+          ! grep -RniE 'Premium|PREMIUM_|Telegram|telegram|Admin|admin|UTR|UPI|QRCode|AstroSathiAdminBot' generated/JyotishG/App.tsx generated/JyotishG/package.json generated/JyotishG/android/app/src/main/AndroidManifest.xml
+          ! grep -RniE 'Premium|PREMIUM_|Telegram|telegram|UTR|UPI|QRCode|AstroSathiAdminBot' generated/JyotishG/android/app/src/main/java/com/jyotishg/AstroNativeModule.kt
+          grep -Fq 'askMiniAI(chart,text,l,previous)' generated/JyotishG/App.tsx
+          grep -Fq 'MINI-AI ACTIVE' generated/JyotishG/App.tsx
           grep -Fq 'keyboardShouldPersistTaps="handled"' generated/JyotishG/App.tsx
-          echo 'Immediate Telegram decision, account recovery and keyboard-safe Premium flow are present.'
+          echo 'Premium, Telegram, UPI and admin flows are absent; Jyotish G chat is unlocked.'
 
       - name: Install JavaScript dependencies
         working-directory: generated/JyotishG
