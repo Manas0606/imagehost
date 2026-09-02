@@ -2,7 +2,7 @@ name: jyotishg Android Public Build
 
 on:
   push:
-    branches: [agent/jyotishg-android]
+    branches: [jyotish-g]
     paths:
       - 'mobile/**'
       - 'pages/**'
@@ -27,7 +27,7 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
         with:
-          ref: agent/jyotishg-android
+          ref: jyotish-g
           fetch-depth: 0
 
       - name: Verify jyotishg sources
