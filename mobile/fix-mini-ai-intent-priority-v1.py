@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-path=Path.cwd()/'generated/AstroSathi/mini-ai.ts'
+path=Path.cwd()/'generated/JyotishG/mini-ai.ts'
 if not path.exists(): raise SystemExit('Generated Mini-AI core not found')
 text=path.read_text()
 old="function intentFor(q:string,previous?:MiniContext){const c=classify(q,INTENT_PROTO);if(c.score>=2.25)return c.label;if(previous&&tokens(q).length<=7)return previous.intent;return'forecast'}"
@@ -9,4 +9,4 @@ new="""function intentFor(q:string,previous?:MiniContext){const s=normalize(q);i
 if old not in text: raise SystemExit('Core Mini-AI intent marker not found')
 text=text.replace(old,new,1)
 path.write_text(text)
-print('AstroSathi core Mini-AI prioritizes explicit English/Hindi/Odia question intent')
+print('Jyotish G core Mini-AI prioritizes explicit English/Hindi/Odia question intent')

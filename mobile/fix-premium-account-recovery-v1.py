@@ -2,7 +2,7 @@
 from pathlib import Path
 import re
 
-path=Path.cwd()/'generated/AstroSathi/premium.ts'
+path=Path.cwd()/'generated/JyotishG/premium.ts'
 if not path.exists(): raise SystemExit('Generated premium.ts not found')
 text=path.read_text()
 
@@ -43,8 +43,8 @@ local_pattern=r"function localState\(remote:PremiumState,local:LocalPremiumRecor
 local_repl="""function localState(remote:PremiumState,local:LocalPremiumRecord):PremiumState{
   const common={...remote,requestId:local.requestId};
   if(local.status==='pending')return{...common,kind:'pending',requestSubmitted:true,message:'Premium request sent successfully. Waiting for admin approval. You will be notified automatically in the app.'};
-  if(local.status==='rejected')return{...common,kind:'rejected',requestSubmitted:false,message:local.message||'Your premium request was rejected by the AstroSathi admin.'};
-  if(local.status==='stopped')return{...common,kind:'stopped',requestSubmitted:false,message:local.message||'Premium access was stopped by the AstroSathi admin.'};
+  if(local.status==='rejected')return{...common,kind:'rejected',requestSubmitted:false,message:local.message||'Your premium request was rejected by the Jyotish G admin.'};
+  if(local.status==='stopped')return{...common,kind:'stopped',requestSubmitted:false,message:local.message||'Premium access was stopped by the Jyotish G admin.'};
   const approvedAt=local.approvedAt||Date.now(),expiresAt=local.expiresAt||approvedAt+local.durationMinutes*60*1000;
   const now=trustedNow(remote);
   if(now>=expiresAt)return{...common,kind:'expired',requestSubmitted:false,approvedAt,expiresAt,message:'Your premium period has ended. You can renew from the Premium screen.'};
@@ -61,4 +61,4 @@ for needle in (
 ):
   if needle not in text: raise SystemExit(f'Premium recovery patch missing: {needle}')
 path.write_text(text)
-print('AstroSathi Premium: immediate Telegram decision every 3s + durable email recovery handoff')
+print('Jyotish G Premium: immediate Telegram decision every 3s + durable email recovery handoff')

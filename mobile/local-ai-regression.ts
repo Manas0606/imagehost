@@ -1,6 +1,6 @@
 import {LOCAL_AI_MODEL_INFO,understandLocal} from './local-ai-model';
 
-function check(x:boolean,m:string){if(!x)throw new Error(`AstroSathi local AI regression failed: ${m}`)}
+function check(x:boolean,m:string){if(!x)throw new Error(`Jyotish G local AI regression failed: ${m}`)}
 const kiss=understandLocal('Kiss');
 check(kiss.topic==='love','Kiss must map to love');
 check(kiss.focus==='intimacy','Kiss must map to intimacy');
@@ -22,4 +22,4 @@ check(follow.topic==='career','short follow-up must inherit previous career cont
 check(follow.focus!=='reconciliation','exactly must never match ex/reconciliation');
 check(LOCAL_AI_MODEL_INFO.networkRequired===false&&LOCAL_AI_MODEL_INFO.paidApiRequired===false,'model must be offline and free of paid APIs');
 check(LOCAL_AI_MODEL_INFO.trainingExamples>=100,'semantic model corpus unexpectedly small');
-console.log(`AstroSathi compact local AI regression passed (${LOCAL_AI_MODEL_INFO.trainingExamples} multilingual examples, ${LOCAL_AI_MODEL_INFO.dimensions} hashed dimensions)`);
+console.log(`Jyotish G compact local AI regression passed (${LOCAL_AI_MODEL_INFO.trainingExamples} multilingual examples, ${LOCAL_AI_MODEL_INFO.dimensions} hashed dimensions)`);

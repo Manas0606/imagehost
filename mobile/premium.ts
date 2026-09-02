@@ -128,7 +128,7 @@ async function clearLocal(){try{if(AstroNative?.clearPremiumLocalState)await Ast
 
 export function resolvePremium(cfg: PremiumControl, deviceId: string, email: string|undefined, serverNow: number, syncedAt: number): PremiumState {
   const common=base(cfg,serverNow,syncedAt), globalMessage=cfg.global?.message||'';
-  if(cfg.global?.premiumEnabled===false)return{kind:'stopped',message:globalMessage||'Premium access is temporarily stopped by the AstroSathi admin.',...common};
+  if(cfg.global?.premiumEnabled===false)return{kind:'stopped',message:globalMessage||'Premium access is temporarily stopped by the Jyotish G admin.',...common};
   const entry=pickEntry(cfg,deviceId,email);
   if(!entry)return{kind:'pending',message:globalMessage||'Pay the configured amount and send your UTR for admin approval.',...common};
   const requestId=entry.requestId;
@@ -187,9 +187,9 @@ async function syncTelegramDecision(state:PremiumState,local:LocalPremiumRecord)
       const approvedAt=now,expiresAt=approvedAt+local.durationMinutes*60*1000;
       next={...local,status:'approved',approvedAt,expiresAt,decisionUpdateId:updateId,message:`Payment approved. Premium is active until ${new Date(expiresAt).toISOString()}.`};
     }else if(action==='R'&&local.status==='pending'){
-      next={...local,status:'rejected',decisionUpdateId:updateId,message:'Your premium request was rejected by the AstroSathi admin.'};
+      next={...local,status:'rejected',decisionUpdateId:updateId,message:'Your premium request was rejected by the Jyotish G admin.'};
     }else if(action==='S'&&local.status==='approved'){
-      next={...local,status:'stopped',decisionUpdateId:updateId,message:'Premium access was stopped by the AstroSathi admin.'};
+      next={...local,status:'stopped',decisionUpdateId:updateId,message:'Premium access was stopped by the Jyotish G admin.'};
     }else return local;
     await saveLocal(next);
     await notifyAdminDecision(state,String(cb.id||''),next,action);
@@ -200,8 +200,8 @@ async function syncTelegramDecision(state:PremiumState,local:LocalPremiumRecord)
 function localState(remote:PremiumState,local:LocalPremiumRecord):PremiumState{
   const common={...remote,requestId:local.requestId};
   if(local.status==='pending')return{...common,kind:'pending',requestSubmitted:true,message:'Premium request sent successfully. Waiting for admin approval. You will be notified automatically in the app.'};
-  if(local.status==='rejected')return{...common,kind:'rejected',requestSubmitted:false,message:local.message||'Your premium request was rejected by the AstroSathi admin.'};
-  if(local.status==='stopped')return{...common,kind:'stopped',requestSubmitted:false,message:local.message||'Premium access was stopped by the AstroSathi admin.'};
+  if(local.status==='rejected')return{...common,kind:'rejected',requestSubmitted:false,message:local.message||'Your premium request was rejected by the Jyotish G admin.'};
+  if(local.status==='stopped')return{...common,kind:'stopped',requestSubmitted:false,message:local.message||'Premium access was stopped by the Jyotish G admin.'};
   const approvedAt=local.approvedAt||Date.now(),expiresAt=local.expiresAt||approvedAt+local.durationMinutes*60*1000;
   const now=trustedNow(remote);
   if(now>=expiresAt)return{...common,kind:'expired',requestSubmitted:false,approvedAt,expiresAt,message:'Your premium period has ended. You can renew from the Premium screen.'};
@@ -242,7 +242,7 @@ export async function sendTelegramPremiumRequest(state:PremiumState,payload:Prem
   const duration=state.durationMinutes||DEFAULT_PREMIUM_DURATION_MINUTES;
   const requestId=`${Date.now().toString(36)}${Math.random().toString(36).slice(2,8)}`.slice(0,20);
   const text=[
-    '🔔 ASTROSATHI_PREMIUM_REQUEST',
+    '🔔 Jyotish G_PREMIUM_REQUEST',
     `Request ID: ${requestId}`,
     `Name: ${name}`,
     `Email: ${email}`,

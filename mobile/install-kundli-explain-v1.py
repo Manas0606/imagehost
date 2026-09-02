@@ -2,7 +2,7 @@
 from pathlib import Path
 import re
 
-path=Path.cwd()/'generated/AstroSathi/App.tsx'
+path=Path.cwd()/'generated/JyotishG/App.tsx'
 if not path.exists(): raise SystemExit('Generated App.tsx not found')
 text=path.read_text()
 text=text.replace("{screen==='chart'&&<ChartScreen t={t} chart={chart} back={()=>setScreen('home')}/>}","{screen==='chart'&&<ChartScreen t={t} l={l} chart={chart} back={()=>setScreen('home')}/>}" ,1)
@@ -20,4 +20,4 @@ if count!=1: raise SystemExit('ChartScreen marker not found for Kundli explanati
 for needle in ('KundliMeaning','12 भावों का सरल अर्थ','12ଟି ଭାବର ସରଳ ଅର୍ଥ','What your Kundli means'):
     if needle not in text: raise SystemExit(f'Kundli explanation missing: {needle}')
 path.write_text(text)
-print('AstroSathi multilingual Kundli explanation installed')
+print('Jyotish G multilingual Kundli explanation installed')

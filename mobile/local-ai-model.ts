@@ -51,4 +51,4 @@ export function understandLocal(question:string,previous?:LocalContext):LocalUnd
  return{topic,intent,focus,topicConfidence:Math.max(0,Math.min(1,t.score+.25*t.margin)),intentConfidence:Math.max(0,Math.min(1,i.score+.25*i.margin)),focusConfidence:focus==='none'?1-Math.max(0,f.score):Math.max(0,Math.min(1,f.score+.25*f.margin))};
 }
 
-export const LOCAL_AI_MODEL_INFO={name:'AstroSathi Compact Semantic Model',version:'1.0.0',architecture:'hashed character/word n-gram nearest-centroid classifier',dimensions:DIM,trainingExamples:E.length,networkRequired:false,paidApiRequired:false} as const;
+export const LOCAL_AI_MODEL_INFO={name:'Jyotish G Compact Semantic Model',version:'1.0.0',architecture:'hashed character/word n-gram nearest-centroid classifier',dimensions:DIM,trainingExamples:E.length,networkRequired:false,paidApiRequired:false} as const;

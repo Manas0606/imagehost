@@ -2,9 +2,9 @@
 from pathlib import Path
 import re,shutil
 
-root=Path.cwd(); app=root/'generated'/'AstroSathi'; src=root/'mobile'
-path=app/'App.tsx'; native=app/'android/app/src/main/java/com/astrosathi/AstroNativeModule.kt'
-if not path.exists() or not native.exists(): raise SystemExit('Generated AstroSathi files missing for mini AI v4')
+root=Path.cwd(); app=root/'generated'/'JyotishG'; src=root/'mobile'
+path=app/'App.tsx'; native=app/'android/app/src/main/java/com/jyotishg/AstroNativeModule.kt'
+if not path.exists() or not native.exists(): raise SystemExit('Generated Jyotish G files missing for mini AI v4')
 shutil.copy2(src/'mini-ai.ts',app/'mini-ai.ts')
 text=path.read_text()
 
@@ -18,8 +18,8 @@ new_state="const[locked,setLocked]=useState(false),[lockSecret,setLockSecret]=us
 if old_state not in text: raise SystemExit('Mini AI state marker not found')
 text=text.replace(old_state,new_state,1)
 
-old_ask="function ask(q?:string){const text=(q||question).trim();if(!chart)return Alert.alert('AstroSathi',t.noChart);if(!active)return Alert.alert('Premium','Premium must be active to use Ask AstroSathi.');if(!text)return;const previous=turns.length?turns[turns.length-1].g.topic:undefined;const g=analyseQuestion(chart,text,l,previous);setAnswer(g);setTurns(v=>[...v,{q:text,g}].slice(-30));setQuestion('')}"
-new_ask="function ask(q?:string){const text=(q||question).trim();if(!chart)return Alert.alert('AstroSathi',t.noChart);if(!active)return Alert.alert('Premium',l==='hi'?'Ask AstroSathi उपयोग करने के लिए Premium सक्रिय होना चाहिए।':l==='or'?'Ask AstroSathi ବ୍ୟବହାର ପାଇଁ Premium ସକ୍ରିୟ ହେବା ଦରକାର।':'Premium must be active to use Ask AstroSathi.');if(!text)return;const previous:MiniContext|undefined=turns.length?turns[turns.length-1].a.context:undefined;const a=askMiniAI(chart,text,l,previous);setAnswer(a);setTurns(v=>[...v,{q:text,a}].slice(-30));setQuestion('')}"
+old_ask="function ask(q?:string){const text=(q||question).trim();if(!chart)return Alert.alert('Jyotish G',t.noChart);if(!active)return Alert.alert('Premium','Premium must be active to use Ask Jyotish G.');if(!text)return;const previous=turns.length?turns[turns.length-1].g.topic:undefined;const g=analyseQuestion(chart,text,l,previous);setAnswer(g);setTurns(v=>[...v,{q:text,g}].slice(-30));setQuestion('')}"
+new_ask="function ask(q?:string){const text=(q||question).trim();if(!chart)return Alert.alert('Jyotish G',t.noChart);if(!active)return Alert.alert('Premium',l==='hi'?'Ask Jyotish G उपयोग करने के लिए Premium सक्रिय होना चाहिए।':l==='or'?'Ask Jyotish G ବ୍ୟବହାର ପାଇଁ Premium ସକ୍ରିୟ ହେବା ଦରକାର।':'Premium must be active to use Ask Jyotish G.');if(!text)return;const previous:MiniContext|undefined=turns.length?turns[turns.length-1].a.context:undefined;const a=askMiniAI(chart,text,l,previous);setAnswer(a);setTurns(v=>[...v,{q:text,a}].slice(-30));setQuestion('')}"
 if old_ask not in text: raise SystemExit('Mini AI ask marker not found')
 text=text.replace(old_ask,new_ask,1)
 
@@ -42,14 +42,14 @@ notice_helper=""" useEffect(()=>{if(boot?.loggedIn&&boot.lockMode&&boot.lockMode
   if(!['active','rejected','stopped','expired'].includes(st.kind))return;
   const key=`${st.kind}|${st.requestId||''}|${st.approvedAt||''}|${st.expiresAt||''}|${st.message||''}`;
   const seen=await AstroNative.getPremiumNoticeKey().catch(()=> '');if(seen===key)return;
-  const activeMsg=l==='hi'?`आपका Premium ${clock(st.expiresAt)} तक सक्रिय है। Ask AstroSathi अब खुल गया है।`:l==='or'?`ଆପଣଙ୍କ Premium ${clock(st.expiresAt)} ପର୍ଯ୍ୟନ୍ତ ସକ୍ରିୟ। Ask AstroSathi ଏବେ ଖୋଲା ଅଛି।`:`Your Premium is active until ${clock(st.expiresAt)}. Ask AstroSathi is now unlocked.`;
+  const activeMsg=l==='hi'?`आपका Premium ${clock(st.expiresAt)} तक सक्रिय है। Ask Jyotish G अब खुल गया है।`:l==='or'?`ଆପଣଙ୍କ Premium ${clock(st.expiresAt)} ପର୍ଯ୍ୟନ୍ତ ସକ୍ରିୟ। Ask Jyotish G ଏବେ ଖୋଲା ଅଛି।`:`Your Premium is active until ${clock(st.expiresAt)}. Ask Jyotish G is now unlocked.`;
   const rejectedMsg=st.message||(l==='hi'?'आपका Premium अनुरोध अस्वीकार किया गया है। भुगतान विवरण जाँचकर फिर प्रयास करें।':l==='or'?'ଆପଣଙ୍କ Premium ଅନୁରୋଧ ଅସ୍ୱୀକୃତ ହୋଇଛି। ପେମେଣ୍ଟ ବିବରଣୀ ଯାଞ୍ଚ କରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।':'Your Premium request was rejected. Verify the payment details and try again.');
   const stoppedMsg=st.message||(l==='hi'?'Admin ने Premium रोक दिया है।':l==='or'?'Admin Premium ବନ୍ଦ କରିଛନ୍ତି।':'Premium access was stopped by the admin.');
   const expiredMsg=l==='hi'?'आपकी Premium अवधि समाप्त हो गई है। Premium स्क्रीन से नवीनीकरण कर सकते हैं।':l==='or'?'ଆପଣଙ୍କ Premium ସମୟ ଶେଷ ହୋଇଛି। Premium ସ୍କ୍ରିନ୍‌ରୁ ପୁଣି ନବୀକରଣ କରିପାରିବେ।':'Your Premium period has ended. You can renew from the Premium screen.';
-  if(st.kind==='active'){AstroNative.showNotification('AstroSathi Premium Approved',activeMsg).catch(()=>{});Alert.alert(l==='hi'?'Premium स्वीकृत':l==='or'?'Premium ଅନୁମୋଦିତ':'Premium Approved',activeMsg)}
-  else if(st.kind==='rejected'){AstroNative.showNotification('AstroSathi Premium',rejectedMsg).catch(()=>{});Alert.alert(l==='hi'?'अनुरोध अस्वीकार':l==='or'?'ଅନୁରୋଧ ଅସ୍ୱୀକୃତ':'Request Rejected',rejectedMsg)}
-  else if(st.kind==='stopped'){AstroNative.showNotification('AstroSathi Premium',stoppedMsg).catch(()=>{});Alert.alert(l==='hi'?'Premium रोका गया':l==='or'?'Premium ବନ୍ଦ':'Premium Stopped',stoppedMsg)}
-  else{AstroNative.showNotification('AstroSathi Premium',expiredMsg).catch(()=>{})}
+  if(st.kind==='active'){AstroNative.showNotification('Jyotish G Premium Approved',activeMsg).catch(()=>{});Alert.alert(l==='hi'?'Premium स्वीकृत':l==='or'?'Premium ଅନୁମୋଦିତ':'Premium Approved',activeMsg)}
+  else if(st.kind==='rejected'){AstroNative.showNotification('Jyotish G Premium',rejectedMsg).catch(()=>{});Alert.alert(l==='hi'?'अनुरोध अस्वीकार':l==='or'?'ଅନୁରୋଧ ଅସ୍ୱୀକୃତ':'Request Rejected',rejectedMsg)}
+  else if(st.kind==='stopped'){AstroNative.showNotification('Jyotish G Premium',stoppedMsg).catch(()=>{});Alert.alert(l==='hi'?'Premium रोका गया':l==='or'?'Premium ବନ୍ଦ':'Premium Stopped',stoppedMsg)}
+  else{AstroNative.showNotification('Jyotish G Premium',expiredMsg).catch(()=>{})}
   await AstroNative.savePremiumNoticeKey(key).catch(()=>{});
  }
 """
@@ -102,4 +102,4 @@ for needle in ('askMiniAI(chart,text,l,previous)','PREMIUM MINI-AI ACTIVE','getP
     if needle not in target: raise SystemExit(f'Mini AI v4 patch missing: {needle}')
 if 'analyseQuestion(chart,text,l,previous)' in text: raise SystemExit('Old canned guidance ask path still present')
 path.write_text(text)
-print('AstroSathi Mini AI v4 installed: one-time premium notices, keyboard-safe multilingual local semantic chat')
+print('Jyotish G Mini AI v4 installed: one-time premium notices, keyboard-safe multilingual local semantic chat')

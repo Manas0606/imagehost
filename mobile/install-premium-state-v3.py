@@ -2,7 +2,7 @@
 from pathlib import Path
 import re
 
-root=Path.cwd(); app=root/'generated'/'AstroSathi'
+root=Path.cwd(); app=root/'generated'/'JyotishG'
 if not app.exists(): raise SystemExit('Generated React Native project not found')
 
 app_ts=app/'App.tsx'; text=app_ts.read_text()
@@ -17,15 +17,15 @@ if count!=1: raise SystemExit('Premium screen v3 marker not found')
 text=text.replace("<Btn secondary onPress={()=>Linking.openURL(`https://t.me/${TELEGRAM}`)}>{t.support} @{TELEGRAM}</Btn>","")
 
 # Add explicit rejection notification + in-app message alongside approval/stop/expiry transitions.
-needle="if(prevPremium.current==='active'&&st.kind==='expired'){AstroNative.showNotification('AstroSathi Premium Expired','Your premium period has ended. You can renew from the Premium screen.').catch(()=>{})}"
-replacement_notice=needle+"if(prevPremium.current!=='rejected'&&st.kind==='rejected'){AstroNative.showNotification('AstroSathi Premium Request Rejected',st.message||'Your premium request was rejected.').catch(()=>{});Alert.alert('Premium Request Rejected',st.message||'Your premium request was rejected. Please verify the payment and try again.')}"
+needle="if(prevPremium.current==='active'&&st.kind==='expired'){AstroNative.showNotification('Jyotish G Premium Expired','Your premium period has ended. You can renew from the Premium screen.').catch(()=>{})}"
+replacement_notice=needle+"if(prevPremium.current!=='rejected'&&st.kind==='rejected'){AstroNative.showNotification('Jyotish G Premium Request Rejected',st.message||'Your premium request was rejected.').catch(()=>{});Alert.alert('Premium Request Rejected',st.message||'Your premium request was rejected. Please verify the payment and try again.')}"
 if needle not in text: raise SystemExit('Premium expiry notification marker not found')
 text=text.replace(needle,replacement_notice,1)
 
 app_ts.write_text(text)
 
 # Add encrypted local premium request/decision storage to the existing Android Keystore-backed native vault.
-java=app/'android/app/src/main/java/com/astrosathi/AstroNativeModule.kt'
+java=app/'android/app/src/main/java/com/jyotishg/AstroNativeModule.kt'
 kt=java.read_text()
 marker='    @ReactMethod\n    fun setAppLock(mode: String, secret: String, p: Promise) {'
 addition='''    @ReactMethod
@@ -68,4 +68,4 @@ for required in ('PREMIUM REQUEST SENT','premium.requestSubmitted','Premium Requ
     target=text if required in text else kt
     if required not in target: raise SystemExit(f'Premium state v3 patch missing: {required}')
 if 'Telegram @{TELEGRAM}' in text: raise SystemExit('Visible Telegram bot button still present')
-print('AstroSathi premium state v3 installed: hidden bot UI, encrypted pending request state, immediate approve/reject/stop UI and notifications')
+print('Jyotish G premium state v3 installed: hidden bot UI, encrypted pending request state, immediate approve/reject/stop UI and notifications')

@@ -2,7 +2,7 @@
 from pathlib import Path
 import re
 
-root=Path.cwd()/'generated/AstroSathi'
+root=Path.cwd()/'generated/JyotishG'
 path=root/'App.tsx'
 manifest=root/'android/app/src/main/AndroidManifest.xml'
 if not path.exists(): raise SystemExit('Generated App.tsx not found')
@@ -47,4 +47,4 @@ for required in ('keyboardShouldPersistTaps="handled"','paddingBottom:260','andr
     target=fn if required!='android:windowSoftInputMode="adjustResize"' else m
     if required not in target: raise SystemExit(f'Premium manual-scroll patch missing: {required}')
 
-print('AstroSathi Premium layout restored: normal UTR keyboard + manual keyboard-safe scrolling, no auto-jump')
+print('Jyotish G Premium layout restored: normal UTR keyboard + manual keyboard-safe scrolling, no auto-jump')

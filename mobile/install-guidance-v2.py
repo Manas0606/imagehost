@@ -2,7 +2,7 @@
 from pathlib import Path
 import re
 
-root=Path.cwd(); app=root/'generated'/'AstroSathi'
+root=Path.cwd(); app=root/'generated'/'JyotishG'
 if not app.exists(): raise SystemExit('Generated React Native project not found')
 app_ts=app/'App.tsx'; text=app_ts.read_text()
 
@@ -11,8 +11,8 @@ state_new="const[locked,setLocked]=useState(false),[lockSecret,setLockSecret]=us
 if state_old not in text: raise SystemExit('Chat state marker not found')
 text=text.replace(state_old,state_new,1)
 
-ask_old="function ask(q?:string){const text=(q||question).trim();if(!chart)return Alert.alert('AstroSathi',t.noChart);if(!active)return Alert.alert('Premium','Premium must be active to use Ask AstroSathi.');if(!text)return;setQuestion(text);setAnswer(analyseQuestion(chart,text))}"
-ask_new="function ask(q?:string){const text=(q||question).trim();if(!chart)return Alert.alert('AstroSathi',t.noChart);if(!active)return Alert.alert('Premium','Premium must be active to use Ask AstroSathi.');if(!text)return;const previous=turns.length?turns[turns.length-1].g.topic:undefined;const g=analyseQuestion(chart,text,l,previous);setAnswer(g);setTurns(v=>[...v,{q:text,g}].slice(-30));setQuestion('')}"
+ask_old="function ask(q?:string){const text=(q||question).trim();if(!chart)return Alert.alert('Jyotish G',t.noChart);if(!active)return Alert.alert('Premium','Premium must be active to use Ask Jyotish G.');if(!text)return;setQuestion(text);setAnswer(analyseQuestion(chart,text))}"
+ask_new="function ask(q?:string){const text=(q||question).trim();if(!chart)return Alert.alert('Jyotish G',t.noChart);if(!active)return Alert.alert('Premium','Premium must be active to use Ask Jyotish G.');if(!text)return;const previous=turns.length?turns[turns.length-1].g.topic:undefined;const g=analyseQuestion(chart,text,l,previous);setAnswer(g);setTurns(v=>[...v,{q:text,g}].slice(-30));setQuestion('')}"
 if ask_old not in text: raise SystemExit('Ask function marker not found')
 text=text.replace(ask_old,ask_new,1)
 
@@ -22,8 +22,8 @@ if route_old not in text: raise SystemExit('Chat route marker not found')
 text=text.replace(route_old,route_new,1)
 
 # Make premium approval/expiry visible even while the app is open.
-active_old="if(prevPremium.current!=='active'&&st.kind==='active'){AstroNative.showNotification('AstroSathi Premium Approved',`Your premium is active until ${clock(st.expiresAt)}.`).catch(()=>{})}if(prevPremium.current==='active'&&st.kind==='stopped'){AstroNative.showNotification('AstroSathi Premium Stopped',st.message||'Premium access was stopped by admin.').catch(()=>{})}"
-active_new="if(prevPremium.current!=='active'&&st.kind==='active'){AstroNative.showNotification('AstroSathi Premium Approved',`Premium is active until ${clock(st.expiresAt)}. Ask AstroSathi is now unlocked.`).catch(()=>{});Alert.alert('Premium Approved',`Your premium is active until ${clock(st.expiresAt)}. Ask AstroSathi is now unlocked.`)}if(prevPremium.current==='active'&&st.kind==='stopped'){AstroNative.showNotification('AstroSathi Premium Stopped',st.message||'Premium access was stopped by admin.').catch(()=>{})}if(prevPremium.current==='active'&&st.kind==='expired'){AstroNative.showNotification('AstroSathi Premium Expired','Your premium period has ended. You can renew from the Premium screen.').catch(()=>{})}"
+active_old="if(prevPremium.current!=='active'&&st.kind==='active'){AstroNative.showNotification('Jyotish G Premium Approved',`Your premium is active until ${clock(st.expiresAt)}.`).catch(()=>{})}if(prevPremium.current==='active'&&st.kind==='stopped'){AstroNative.showNotification('Jyotish G Premium Stopped',st.message||'Premium access was stopped by admin.').catch(()=>{})}"
+active_new="if(prevPremium.current!=='active'&&st.kind==='active'){AstroNative.showNotification('Jyotish G Premium Approved',`Premium is active until ${clock(st.expiresAt)}. Ask Jyotish G is now unlocked.`).catch(()=>{});Alert.alert('Premium Approved',`Your premium is active until ${clock(st.expiresAt)}. Ask Jyotish G is now unlocked.`)}if(prevPremium.current==='active'&&st.kind==='stopped'){AstroNative.showNotification('Jyotish G Premium Stopped',st.message||'Premium access was stopped by admin.').catch(()=>{})}if(prevPremium.current==='active'&&st.kind==='expired'){AstroNative.showNotification('Jyotish G Premium Expired','Your premium period has ended. You can renew from the Premium screen.').catch(()=>{})}"
 if active_old not in text: raise SystemExit('Premium notification marker not found')
 text=text.replace(active_old,active_new,1)
 
@@ -50,4 +50,4 @@ required=(
 for needle in required:
     if needle not in text: raise SystemExit(f'Guidance v2 patch missing: {needle}')
 app_ts.write_text(text)
-print('AstroSathi guidance v2 overlay installed: multi-turn local kundali chat, timing windows, remedies, approval/expiry notifications')
+print('Jyotish G guidance v2 overlay installed: multi-turn local kundali chat, timing windows, remedies, approval/expiry notifications')

@@ -1,10 +1,10 @@
-name: Export AstroSathi APK
+name: Export jyotishg APK
 
 on:
   push:
-    branches: [agent/astrosathi-android]
+    branches: [agent/jyotishg-android]
     paths:
-      - '.github/workflows/export-astrosathi-apk.yml'
+      - '.github/workflows/export-jyotishg-apk.yml'
   workflow_dispatch:
 
 permissions:
@@ -19,79 +19,79 @@ jobs:
         with:
           ref: gh-pages
           sparse-checkout: |
-            downloads/AstroSathi.apk
-            downloads/AstroSathi.apk.sha256
+            downloads/JyotishG.apk
+            downloads/JyotishG.apk.sha256
           sparse-checkout-cone-mode: false
 
       - name: Verify and split published APK
         run: |
-          test -s downloads/AstroSathi.apk
+          test -s downloads/JyotishG.apk
           cd downloads
-          sha256sum -c AstroSathi.apk.sha256
+          sha256sum -c JyotishG.apk.sha256
           mkdir -p chunks
-          split -b 8M -d -a 2 AstroSathi.apk chunks/part-
+          split -b 8M -d -a 2 JyotishG.apk chunks/part-
           sha256sum chunks/part-* > chunks/SHA256SUMS
           ls -lh chunks/
 
       - name: Upload chunk 00
         uses: actions/upload-artifact@v4
         with:
-          name: astrosathi-part-00
+          name: jyotishg-part-00
           path: downloads/chunks/part-00
           compression-level: 0
           retention-days: 1
       - name: Upload chunk 01
         uses: actions/upload-artifact@v4
         with:
-          name: astrosathi-part-01
+          name: jyotishg-part-01
           path: downloads/chunks/part-01
           compression-level: 0
           retention-days: 1
       - name: Upload chunk 02
         uses: actions/upload-artifact@v4
         with:
-          name: astrosathi-part-02
+          name: jyotishg-part-02
           path: downloads/chunks/part-02
           compression-level: 0
           retention-days: 1
       - name: Upload chunk 03
         uses: actions/upload-artifact@v4
         with:
-          name: astrosathi-part-03
+          name: jyotishg-part-03
           path: downloads/chunks/part-03
           compression-level: 0
           retention-days: 1
       - name: Upload chunk 04
         uses: actions/upload-artifact@v4
         with:
-          name: astrosathi-part-04
+          name: jyotishg-part-04
           path: downloads/chunks/part-04
           compression-level: 0
           retention-days: 1
       - name: Upload chunk 05
         uses: actions/upload-artifact@v4
         with:
-          name: astrosathi-part-05
+          name: jyotishg-part-05
           path: downloads/chunks/part-05
           compression-level: 0
           retention-days: 1
       - name: Upload chunk 06
         uses: actions/upload-artifact@v4
         with:
-          name: astrosathi-part-06
+          name: jyotishg-part-06
           path: downloads/chunks/part-06
           compression-level: 0
           retention-days: 1
       - name: Upload chunk 07
         uses: actions/upload-artifact@v4
         with:
-          name: astrosathi-part-07
+          name: jyotishg-part-07
           path: downloads/chunks/part-07
           compression-level: 0
           retention-days: 1
       - name: Upload chunk checksums
         uses: actions/upload-artifact@v4
         with:
-          name: astrosathi-chunk-checksums
+          name: jyotishg-chunk-checksums
           path: downloads/chunks/SHA256SUMS
           retention-days: 1

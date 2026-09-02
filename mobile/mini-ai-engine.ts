@@ -219,7 +219,7 @@ function loveFollowUps(lang:GuidanceLanguage,focus:MiniFocus):string[]{
 }
 
 /**
- * Offline AstroSathi AI entry point.
+ * Offline Jyotish G AI entry point.
  * Semantic understanding routes the question; deterministic Kundli/Dasha/Transit logic
  * remains the source of all astrological facts. No third-party or paid AI API is used.
  */

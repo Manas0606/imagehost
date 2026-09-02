@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-app = Path.cwd() / 'generated' / 'AstroSathi'
+app = Path.cwd() / 'generated' / 'JyotishG'
 path = app / 'App.tsx'
 if not path.exists():
     raise SystemExit('Generated App.tsx not found')
@@ -24,4 +24,4 @@ for needle in ('function normalizeKnownCity(', '2:30 AM, 2:30 PM, or 14:30', 'ap
     if needle not in text:
         raise SystemExit(f'Birth input patch missing: {needle}')
 path.write_text(text)
-print('AstroSathi birth input v2 installed: AM/PM-friendly guidance + known-city coordinate synchronization')
+print('Jyotish G birth input v2 installed: AM/PM-friendly guidance + known-city coordinate synchronization')

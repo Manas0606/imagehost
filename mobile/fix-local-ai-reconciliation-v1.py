@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-path=Path.cwd()/'generated/AstroSathi/local-ai-model.ts'
+path=Path.cwd()/'generated/JyotishG/local-ai-model.ts'
 if not path.exists(): raise SystemExit('Generated local AI model not found')
 text=path.read_text()
 context_old="if(previous&&wordCount<=7&&t.score<.28)topic=previous.topic;\n if(previous&&wordCount<=5&&i.score<.23)intent=previous.intent;"
@@ -13,4 +13,4 @@ new="const explicitRecon=/\\b(ex|former partner|reconcile|reconciliation|patch u
 if old not in text: raise SystemExit('Reconciliation guard marker not found')
 text=text.replace(old,new,1)
 path.write_text(text)
-print('AstroSathi learned model preserves short follow-up context and requires explicit reconciliation language')
+print('Jyotish G learned model preserves short follow-up context and requires explicit reconciliation language')

@@ -2,7 +2,7 @@
 from pathlib import Path
 import re
 
-path=Path.cwd()/'generated/AstroSathi/App.tsx'
+path=Path.cwd()/'generated/JyotishG/App.tsx'
 if not path.exists(): raise SystemExit('Generated App.tsx not found')
 text=path.read_text()
 pattern=r"function LockSettings\(.*?\nfunction PatternGrid"
@@ -17,4 +17,4 @@ settings=section.group(0)
 if 'Save Pattern' in settings or '<PatternGrid' in settings: raise SystemExit('Pattern creation still visible in Settings')
 if 'Enable PIN Lock' not in settings: raise SystemExit('PIN lock option missing')
 path.write_text(new)
-print('AstroSathi security settings updated: Pattern Lock creation removed; PIN and biometric remain, with legacy-pattern migration support')
+print('Jyotish G security settings updated: Pattern Lock creation removed; PIN and biometric remain, with legacy-pattern migration support')

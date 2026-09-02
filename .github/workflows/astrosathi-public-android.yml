@@ -1,4 +1,4 @@
-name: AstroSathi Public Android Build (Manual Legacy)
+name: jyotishg Public Android Build (Manual Legacy)
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: astrosathi-android-publish
+  group: jyotishg-android-publish
   cancel-in-progress: false
 
 env:
@@ -21,7 +21,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: agent/astrosathi-android
+          ref: agent/jyotishg-android
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -38,31 +38,31 @@ jobs:
         run: |
           mkdir -p generated
           cd generated
-          npx --yes @react-native-community/cli@latest init AstroSathi --version $RN_VERSION --skip-install --package-name com.astrosathi
+          npx --yes @react-native-community/cli@latest init JyotishG --version $RN_VERSION --skip-install --package-name com.jyotishg
 
-      - name: Install AstroSathi overlay
+      - name: Install jyotishg overlay
         run: python3 mobile/install-overlay.py
 
       - name: Install dependencies
-        working-directory: generated/AstroSathi
+        working-directory: generated/JyotishG
         run: npm install --no-audit --no-fund
 
       - name: Validate TypeScript
-        working-directory: generated/AstroSathi
+        working-directory: generated/JyotishG
         run: npx tsc --noEmit
 
       - name: Build release APK
-        working-directory: generated/AstroSathi/android
+        working-directory: generated/JyotishG/android
         run: ./gradlew assembleRelease --no-daemon --stacktrace
 
       - name: Prepare public site
         run: |
-          test -f generated/AstroSathi/android/app/build/outputs/apk/release/app-release.apk
+          test -f generated/JyotishG/android/app/build/outputs/apk/release/app-release.apk
           rm -rf public-site
           mkdir -p public-site/downloads
           cp pages/index.html public-site/index.html
-          cp generated/AstroSathi/android/app/build/outputs/apk/release/app-release.apk public-site/downloads/AstroSathi.apk
-          sha256sum public-site/downloads/AstroSathi.apk | sed 's#public-site/downloads/##' > public-site/downloads/AstroSathi.apk.sha256
+          cp generated/JyotishG/android/app/build/outputs/apk/release/app-release.apk public-site/downloads/JyotishG.apk
+          sha256sum public-site/downloads/JyotishG.apk | sed 's#public-site/downloads/##' > public-site/downloads/JyotishG.apk.sha256
           touch public-site/.nojekyll
 
       - name: Publish gh-pages branch
@@ -75,6 +75,6 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add .
-          git commit -m "publish: AstroSathi Android APK ${GITHUB_SHA}"
+          git commit -m "publish: jyotishg Android APK ${GITHUB_SHA}"
           git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push --force origin gh-pages

@@ -1,12 +1,12 @@
-name: AstroSathi Android Public Build
+name: jyotishg Android Public Build
 
 on:
   push:
-    branches: [agent/astrosathi-android]
+    branches: [agent/jyotishg-android]
     paths:
       - 'mobile/**'
       - 'pages/**'
-      - '.github/workflows/astrosathi-public-build.yml'
+      - '.github/workflows/jyotishg-public-build.yml'
   workflow_dispatch:
 
 permissions:
@@ -25,7 +25,7 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Verify AstroSathi source
+      - name: Verify jyotishg source
         run: |
           test -f mobile/App.tsx
           test -f mobile/astrology.ts
@@ -46,7 +46,7 @@ jobs:
       - name: Verify live Premium is 30 minutes
         run: |
           curl --fail --silent --show-error --max-time 20 \
-            'https://raw.githubusercontent.com/Manas0606/imagehost/astrosathi-control/premium-control.json' \
+            'https://raw.githubusercontent.com/Manas0606/imagehost/jyotishg-control/premium-control.json' \
             | python3 -c "import json,sys; x=json.load(sys.stdin); assert int(x['config']['durationMinutes'])==30; print('Live Premium duration: 30 minutes')"
 
       - name: Setup Node
@@ -64,29 +64,29 @@ jobs:
         run: |
           mkdir -p generated
           cd generated
-          npx --yes @react-native-community/cli@latest init AstroSathi --version $RN_VERSION --skip-install --package-name com.astrosathi
+          npx --yes @react-native-community/cli@latest init JyotishG --version $RN_VERSION --skip-install --package-name com.jyotishg
 
-      - name: Install AstroSathi app overlay
+      - name: Install jyotishg app overlay
         run: python3 mobile/install-overlay.py
 
       - name: Verify generated 30-minute Premium flow
         run: |
-          grep -Fq 'DEFAULT_PREMIUM_DURATION_MINUTES = 30' generated/AstroSathi/premium.ts
-          grep -Fq 'durationMinutes=safePositiveInt(state.durationMinutes,DEFAULT_PREMIUM_DURATION_MINUTES)' generated/AstroSathi/premium.ts
-          grep -Fq 'premium.durationMinutes||30' generated/AstroSathi/App.tsx
-          ! grep -Fq 'premium.durationMinutes||360' generated/AstroSathi/App.tsx
+          grep -Fq 'DEFAULT_PREMIUM_DURATION_MINUTES = 30' generated/JyotishG/premium.ts
+          grep -Fq 'durationMinutes=safePositiveInt(state.durationMinutes,DEFAULT_PREMIUM_DURATION_MINUTES)' generated/JyotishG/premium.ts
+          grep -Fq 'premium.durationMinutes||30' generated/JyotishG/App.tsx
+          ! grep -Fq 'premium.durationMinutes||360' generated/JyotishG/App.tsx
           echo 'Generated Premium display and approval expiry are locked to current 30-minute configuration.'
 
       - name: Install dependencies
-        working-directory: generated/AstroSathi
+        working-directory: generated/JyotishG
         run: npm install --no-audit --no-fund
 
       - name: TypeScript validation
-        working-directory: generated/AstroSathi
+        working-directory: generated/JyotishG
         run: npx tsc --noEmit
 
       - name: Astrology, local AI, chat engine and life-pattern regression checks
-        working-directory: generated/AstroSathi
+        working-directory: generated/JyotishG
         run: |
           npx --yes tsx@4.20.3 accuracy-tests.ts
           npx --yes tsx@4.20.3 local-ai-regression.ts
@@ -94,18 +94,18 @@ jobs:
           npx --yes tsx@4.20.3 life-patterns-regression.ts
 
       - name: Build release APK
-        working-directory: generated/AstroSathi/android
+        working-directory: generated/JyotishG/android
         run: ./gradlew assembleRelease --no-daemon --stacktrace
 
       - name: Verify and prepare public site
         run: |
-          APK=generated/AstroSathi/android/app/build/outputs/apk/release/app-release.apk
+          APK=generated/JyotishG/android/app/build/outputs/apk/release/app-release.apk
           test -s "$APK"
           mkdir -p _site/downloads
-          cp "$APK" _site/downloads/AstroSathi.apk
+          cp "$APK" _site/downloads/JyotishG.apk
           cp pages/index.html _site/index.html
-          sha256sum _site/downloads/AstroSathi.apk | tee _site/downloads/AstroSathi.apk.sha256
-          du -h _site/downloads/AstroSathi.apk
+          sha256sum _site/downloads/JyotishG.apk | tee _site/downloads/JyotishG.apk.sha256
+          du -h _site/downloads/JyotishG.apk
 
       - name: Upload Pages site
         uses: actions/upload-pages-artifact@v3
@@ -115,10 +115,10 @@ jobs:
       - name: Upload installable APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AstroSathi-Android-APK
+          name: jyotishg-Android-APK
           path: |
-            _site/downloads/AstroSathi.apk
-            _site/downloads/AstroSathi.apk.sha256
+            _site/downloads/JyotishG.apk
+            _site/downloads/JyotishG.apk.sha256
           if-no-files-found: error
           retention-days: 30
 

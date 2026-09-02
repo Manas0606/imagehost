@@ -1,7 +1,7 @@
 import {calculateChart} from './astrology';
 import {buildLifePatterns} from './life-patterns';
 
-function check(x:boolean,m:string){if(!x)throw new Error(`AstroSathi life-pattern regression failed: ${m}`)}
+function check(x:boolean,m:string){if(!x)throw new Error(`Jyotish G life-pattern regression failed: ${m}`)}
 const at=new Date('2026-08-25T03:00:00Z');
 const chart=calculateChart('1998-07-10','2:30 AM',20.4625,85.8830,330);
 const en=buildLifePatterns(chart,'en',at);
@@ -19,4 +19,4 @@ check(/[\u0B00-\u0B7F]/.test(od.title+od.current.join('')),'Odia life-pattern lo
 const other=calculateChart('1994-03-21','14:15',28.6139,77.2090,330);
 const en2=buildLifePatterns(other,'en',at);
 check(JSON.stringify(en.current)!==JSON.stringify(en2.current),'different charts should not produce identical current predictions');
-console.log('AstroSathi chart-derived life-pattern regression passed');
+console.log('Jyotish G chart-derived life-pattern regression passed');

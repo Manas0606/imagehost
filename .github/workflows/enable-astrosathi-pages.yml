@@ -1,10 +1,10 @@
-name: Enable AstroSathi GitHub Pages
+name: Enable jyotishg GitHub Pages
 
 on:
   push:
-    branches: [agent/astrosathi-android]
+    branches: [agent/jyotishg-android]
     paths:
-      - '.github/workflows/enable-astrosathi-pages.yml'
+      - '.github/workflows/enable-jyotishg-pages.yml'
   workflow_dispatch:
 
 permissions:
@@ -23,7 +23,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout published AstroSathi site
+      - name: Checkout published jyotishg site
         uses: actions/checkout@v4
         with:
           ref: gh-pages

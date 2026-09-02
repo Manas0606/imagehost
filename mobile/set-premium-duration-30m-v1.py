@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-root=Path.cwd(); app=root/'generated'/'AstroSathi'
+root=Path.cwd(); app=root/'generated'/'JyotishG'
 premium=app/'premium.ts'; app_ts=app/'App.tsx'
 if not premium.exists() or not app_ts.exists():
-    raise SystemExit('Generated AstroSathi files not found for 30-minute Premium patch')
+    raise SystemExit('Generated Jyotish G files not found for 30-minute Premium patch')
 
 text=premium.read_text()
 text=text.replace('export const DEFAULT_PREMIUM_DURATION_MINUTES = 360;','export const DEFAULT_PREMIUM_DURATION_MINUTES = 30;',1)
@@ -35,4 +35,4 @@ if 'premium.durationMinutes||360' in ui:
     raise SystemExit('Old 360-minute UI fallback still present')
 if 'premium.durationMinutes||30' not in ui:
     raise SystemExit('30-minute UI fallback missing')
-print('AstroSathi Premium duration set consistently to 30 minutes for display and approval expiry')
+print('Jyotish G Premium duration set consistently to 30 minutes for display and approval expiry')

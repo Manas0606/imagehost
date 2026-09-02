@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-native=Path.cwd()/'generated/AstroSathi/android/app/src/main/java/com/astrosathi/AstroNativeModule.kt'
+native=Path.cwd()/'generated/JyotishG/android/app/src/main/java/com/jyotishg/AstroNativeModule.kt'
 if not native.exists(): raise SystemExit('Generated AstroNativeModule.kt not found')
 text=native.read_text()
 text=text.replace('import java.util.concurrent.Executors\n','',1)
@@ -14,4 +14,4 @@ text=text.replace(end,'            }\n        }.start()\n    }\n\n    @ReactMeth
 if 'Executors.newSingleThreadExecutor' in text or 'Thread {' not in text or '}.start()' not in text:
     raise SystemExit('Place-search thread fix verification failed')
 native.write_text(text)
-print('AstroSathi place search uses short-lived background thread')
+print('Jyotish G place search uses short-lived background thread')

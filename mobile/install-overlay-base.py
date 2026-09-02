@@ -2,7 +2,7 @@
 from pathlib import Path
 import json,re,shutil
 
-root=Path.cwd(); src=root/'mobile'; app=root/'generated'/'AstroSathi'
+root=Path.cwd(); src=root/'mobile'; app=root/'generated'/'JyotishG'
 if not app.exists(): raise SystemExit('Generated React Native project not found')
 
 for f in ('App.tsx','astrology.ts','premium.ts','auth.ts','guidance.ts'):
@@ -72,11 +72,15 @@ for needle in required:
     if needle not in app_text: raise SystemExit(f'Generated app hardening missing: {needle}')
 app_ts.write_text(app_text)
 
-java=app/'android/app/src/main/java/com/astrosathi'; java.mkdir(parents=True,exist_ok=True)
+java=app/'android/app/src/main/java/com/jyotishg'; java.mkdir(parents=True,exist_ok=True)
 for f in ('AstroNativeModule.kt','AstroNativePackage.kt'):
     shutil.copy2(src/f,java/f)
 
-main=java/'MainApplication.kt'; text=main.read_text(); needle='PackageList(this).packages.apply {'
+main_candidates=list((app/'android/app/src/main/java').rglob('MainApplication.kt'))
+main=next((p for p in main_candidates if 'package com.jyotishg' in p.read_text()), None)
+if main is None:
+    raise SystemExit('MainApplication.kt for com.jyotishg not found')
+text=main.read_text(); needle='PackageList(this).packages.apply {'
 if needle not in text: raise SystemExit('PackageList block not found')
 if 'add(AstroNativePackage())' not in text:
     text=text.replace(needle,needle+'\n              add(AstroNativePackage())',1)
@@ -88,18 +92,18 @@ deps['astronomy-engine']='2.1.19'
 deps['react-native-safe-area-context']='latest'
 deps['react-native-qrcode-svg']='latest'
 deps['react-native-svg']='latest'
-# Google Sign-In intentionally removed. AstroSathi uses email/password only.
+# Google Sign-In intentionally removed. Jyotish G uses email/password only.
 deps.pop('@react-native-google-signin/google-signin',None)
 pkg.write_text(json.dumps(data,indent=2)+'\n')
 
 res=app/'android/app/src/main/res'
 strings=res/'values/strings.xml'
 if strings.exists():
-    strings.write_text(re.sub(r'<string name="app_name">.*?</string>','<string name="app_name">AstroSathi</string>',strings.read_text()))
+    strings.write_text(re.sub(r'<string name="app_name">.*?</string>','<string name="app_name">Jyotish G</string>',strings.read_text()))
 
 # Bright yellow-gold ॐ-inspired cosmic launcher.
 drawable=res/'drawable'; drawable.mkdir(parents=True,exist_ok=True)
-(drawable/'astrosathi_launcher.xml').write_text('''<?xml version="1.0" encoding="utf-8"?>
+(drawable/'jyotishg_launcher.xml').write_text('''<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="108" android:viewportHeight="108">
@@ -114,8 +118,8 @@ drawable=res/'drawable'; drawable.mkdir(parents=True,exist_ok=True)
 
 manifest=app/'android/app/src/main/AndroidManifest.xml'
 mt=manifest.read_text()
-mt=re.sub(r'android:icon="[^"]+"','android:icon="@drawable/astrosathi_launcher"',mt)
-mt=re.sub(r'android:roundIcon="[^"]+"','android:roundIcon="@drawable/astrosathi_launcher"',mt)
+mt=re.sub(r'android:icon="[^"]+"','android:icon="@drawable/jyotishg_launcher"',mt)
+mt=re.sub(r'android:roundIcon="[^"]+"','android:roundIcon="@drawable/jyotishg_launcher"',mt)
 # Force the focused auth field to remain visible when the software keyboard opens.
 if 'android:windowSoftInputMode=' in mt:
     mt=re.sub(r'android:windowSoftInputMode="[^"]+"','android:windowSoftInputMode="adjustResize"',mt)
@@ -131,4 +135,4 @@ for perm in permissions:
         mt=mt.replace('>',f'>\n    <uses-permission android:name="{perm}" />',1)
 manifest.write_text(mt)
 
-print('AstroSathi overlay installed: keyboard-safe auth, password eye controls, safe-area UI, absolute auth callbacks, email auth, forgot password, duplicate registration guard, Vedic guidance, 15-second Telegram premium control, foreground premium refresh, notifications, background re-lock, validated PIN/pattern/biometric lock, bright-gold branding')
+print('Jyotish G overlay installed: keyboard-safe auth, password eye controls, safe-area UI, absolute auth callbacks, email auth, forgot password, duplicate registration guard, Vedic guidance, 15-second Telegram premium control, foreground premium refresh, notifications, background re-lock, validated PIN/pattern/biometric lock, bright-gold branding')

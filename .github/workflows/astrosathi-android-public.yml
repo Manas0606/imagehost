@@ -1,19 +1,19 @@
-name: AstroSathi Android Public Build
+name: jyotishg Android Public Build
 
 on:
   push:
-    branches: [agent/astrosathi-android]
+    branches: [agent/jyotishg-android]
     paths:
       - 'mobile/**'
       - 'pages/**'
-      - '.github/workflows/astrosathi-android-public.yml'
+      - '.github/workflows/jyotishg-android-public.yml'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: astrosathi-android-publish
+  group: jyotishg-android-publish
   cancel-in-progress: true
 
 env:
@@ -27,10 +27,10 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
         with:
-          ref: agent/astrosathi-android
+          ref: agent/jyotishg-android
           fetch-depth: 0
 
-      - name: Verify AstroSathi sources
+      - name: Verify jyotishg sources
         run: |
           test -f mobile/App.tsx
           test -f mobile/astrology.ts
@@ -59,7 +59,7 @@ jobs:
       - name: Verify durable premium control source
         run: |
           curl --fail --silent --show-error --max-time 20 \
-            'https://raw.githubusercontent.com/Manas0606/imagehost/astrosathi-control/premium-control.json' \
+            'https://raw.githubusercontent.com/Manas0606/imagehost/jyotishg-control/premium-control.json' \
             | python3 -c "import json,sys; x=json.load(sys.stdin); assert x.get('global',{}).get('premiumEnabled',True) in (True,False); assert 'config' in x; print('Premium control source healthy')"
 
       - name: Setup Node
@@ -77,38 +77,38 @@ jobs:
         run: |
           mkdir -p generated
           cd generated
-          npx --yes @react-native-community/cli@latest init AstroSathi --version $RN_VERSION --skip-install --package-name com.astrosathi
+          npx --yes @react-native-community/cli@latest init JyotishG --version $RN_VERSION --skip-install --package-name com.jyotishg
 
-      - name: Install AstroSathi overlay
+      - name: Install jyotishg overlay
         run: python3 mobile/install-overlay.py
 
       - name: Verify generated immediate Premium flow
         run: |
-          grep -Fq 'PREMIUM_CONTROL_URL' generated/AstroSathi/premium.ts
-          grep -Fq 'PREMIUM_POLL_MS = 3 * 1000' generated/AstroSathi/premium.ts
-          grep -Fq 'getUpdates' generated/AstroSathi/premium.ts
-          grep -Fq 'callback_query' generated/AstroSathi/premium.ts
-          grep -Fq 'const accountEntry = cfg.users?.[e];' generated/AstroSathi/premium.ts
-          grep -Fq 'keyboardShouldPersistTaps="handled"' generated/AstroSathi/App.tsx
+          grep -Fq 'PREMIUM_CONTROL_URL' generated/JyotishG/premium.ts
+          grep -Fq 'PREMIUM_POLL_MS = 3 * 1000' generated/JyotishG/premium.ts
+          grep -Fq 'getUpdates' generated/JyotishG/premium.ts
+          grep -Fq 'callback_query' generated/JyotishG/premium.ts
+          grep -Fq 'const accountEntry = cfg.users?.[e];' generated/JyotishG/premium.ts
+          grep -Fq 'keyboardShouldPersistTaps="handled"' generated/JyotishG/App.tsx
           echo 'Immediate Telegram decision, account recovery and keyboard-safe Premium flow are present.'
 
       - name: Install JavaScript dependencies
-        working-directory: generated/AstroSathi
+        working-directory: generated/JyotishG
         run: npm install --no-audit --no-fund
 
       - name: Validate TypeScript
-        working-directory: generated/AstroSathi
+        working-directory: generated/JyotishG
         run: npx tsc --noEmit
 
       - name: Deterministic astrology, location, local AI and life-pattern regression checks
-        working-directory: generated/AstroSathi
+        working-directory: generated/JyotishG
         run: |
           npx --yes tsx@4.20.3 accuracy-tests.ts
           npx --yes tsx@4.20.3 local-ai-regression.ts
           npx --yes tsx@4.20.3 life-patterns-regression.ts
 
       - name: Build release APK
-        working-directory: generated/AstroSathi/android
+        working-directory: generated/JyotishG/android
         run: |
           ok=0
           for attempt in 1 2 3; do
@@ -126,42 +126,42 @@ jobs:
 
       - name: Prepare public site
         run: |
-          APK=generated/AstroSathi/android/app/build/outputs/apk/release/app-release.apk
+          APK=generated/JyotishG/android/app/build/outputs/apk/release/app-release.apk
           test -s "$APK"
           rm -rf public-dist
           mkdir -p public-dist/downloads
           cp pages/index.html public-dist/index.html
           cp pages/reset.html public-dist/reset.html
-          cp "$APK" public-dist/downloads/AstroSathi.apk
-          sha256sum public-dist/downloads/AstroSathi.apk | sed 's#public-dist/downloads/##' > public-dist/downloads/AstroSathi.apk.sha256
+          cp "$APK" public-dist/downloads/JyotishG.apk
+          sha256sum public-dist/downloads/JyotishG.apk | sed 's#public-dist/downloads/##' > public-dist/downloads/JyotishG.apk.sha256
           date -u +'%Y-%m-%dT%H:%M:%SZ' > public-dist/build.txt
           echo "$GITHUB_RUN_ID" > public-dist/run.txt
           touch public-dist/.nojekyll
-          ls -lh public-dist/downloads/AstroSathi.apk
-          cat public-dist/downloads/AstroSathi.apk.sha256
+          ls -lh public-dist/downloads/JyotishG.apk
+          cat public-dist/downloads/JyotishG.apk.sha256
 
       - name: Upload installable APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AstroSathi-Latest-APK
+          name: jyotishg-Latest-APK
           path: |
-            public-dist/downloads/AstroSathi.apk
-            public-dist/downloads/AstroSathi.apk.sha256
+            public-dist/downloads/JyotishG.apk
+            public-dist/downloads/JyotishG.apk.sha256
           if-no-files-found: error
           retention-days: 30
 
       - name: Publish to gh-pages branch
         run: |
           rm -rf generated
-          mkdir -p /tmp/astrosathi-site
-          cp -R public-dist/. /tmp/astrosathi-site/
+          mkdir -p /tmp/jyotishg-site
+          cp -R public-dist/. /tmp/jyotishg-site/
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git checkout --orphan gh-pages-temp
           git rm -rf . >/dev/null 2>&1 || true
           find . -mindepth 1 -maxdepth 1 -not -name .git -exec rm -rf {} +
-          cp -R /tmp/astrosathi-site/. .
+          cp -R /tmp/jyotishg-site/. .
           git add -A
-          git commit -m 'publish: AstroSathi Android APK'
+          git commit -m 'publish: jyotishg Android APK'
           git branch -M gh-pages
           git push --force origin gh-pages

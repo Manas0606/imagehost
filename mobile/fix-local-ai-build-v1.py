@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-app=Path.cwd()/'generated/AstroSathi'
+app=Path.cwd()/'generated/JyotishG'
 model=app/'local-ai-model.ts'; ui=app/'App.tsx'
 if not model.exists() or not ui.exists(): raise SystemExit('Generated local AI files missing')
 text=model.read_text()
@@ -18,4 +18,4 @@ if 'function durationLabel(' not in apptext:
     if marker not in apptext: raise SystemExit('Premium screen marker missing')
     apptext=apptext.replace(marker,helper+marker,1)
 ui.write_text(apptext)
-print('AstroSathi local AI typing and Premium duration helper corrected')
+print('Jyotish G local AI typing and Premium duration helper corrected')

@@ -2,7 +2,7 @@
 from pathlib import Path
 import shutil
 
-app=Path.cwd()/'generated'/'AstroSathi'
+app=Path.cwd()/'generated'/'JyotishG'
 path=app/'guidance.ts'
 if not path.exists(): raise SystemExit('Generated guidance.ts not found')
 text=path.read_text()
@@ -14,6 +14,6 @@ if "SOFT_BENEFIC.has(name)?0.55" not in text: raise SystemExit('Guidance score p
 if "'my ex','ex boyfriend','ex girlfriend'" not in text: raise SystemExit('Follow-up intent patch missing')
 path.write_text(text)
 src=Path(__file__).resolve().parent/'accuracy-tests.ts'
-if not src.exists(): raise SystemExit('AstroSathi regression test source missing')
+if not src.exists(): raise SystemExit('Jyotish G regression test source missing')
 shutil.copy2(src,app/'accuracy-tests.ts')
-print('AstroSathi generated guidance source corrected and regression checks installed')
+print('Jyotish G generated guidance source corrected and regression checks installed')

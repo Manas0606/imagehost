@@ -2,13 +2,13 @@
 from pathlib import Path
 import json,re,shutil
 
-app=Path.cwd()/'generated'/'AstroSathi'
+app=Path.cwd()/'generated'/'JyotishG'
 src=Path.cwd()/'mobile'
 app_ts=app/'App.tsx'
-native=app/'android/app/src/main/java/com/astrosathi/AstroNativeModule.kt'
+native=app/'android/app/src/main/java/com/jyotishg/AstroNativeModule.kt'
 pkg=app/'package.json'
 if not app_ts.exists() or not native.exists() or not pkg.exists():
-    raise SystemExit('Generated AstroSathi files missing for location patch')
+    raise SystemExit('Generated Jyotish G files missing for location patch')
 
 # Offline coordinate -> IANA timezone helper. India is explicitly pinned to Asia/Kolkata.
 shutil.copy2(src/'location.ts',app/'location.ts')
@@ -88,7 +88,7 @@ method=r'''    @ReactMethod
                             readTimeout = 7000
                             setRequestProperty("Accept", "application/json")
                             setRequestProperty("Accept-Language", "en-IN,en;q=0.8")
-                            setRequestProperty("User-Agent", "AstroSathi/1.0 Android (github.com/Manas0606/imagehost)")
+                            setRequestProperty("User-Agent", "Jyotish G/1.0 Android (github.com/Manas0606/imagehost)")
                         }
                         if (c.responseCode in 200..299) {
                             val body = c.inputStream.bufferedReader().use { it.readText() }
@@ -152,4 +152,4 @@ t=t2
 for needle in ("from'./location'", 'AstroNative.searchBirthPlaces', 'Find exact birth place', 'locationVerified', 'historicalOffsetMinutes'):
     if needle not in t: raise SystemExit(f'Birthplace UI patch missing: {needle}')
 app_ts.write_text(t)
-print('AstroSathi place search v3 installed: village search, selectable coordinates, automatic IANA timezone and historical UTC offset')
+print('Jyotish G place search v3 installed: village search, selectable coordinates, automatic IANA timezone and historical UTC offset')

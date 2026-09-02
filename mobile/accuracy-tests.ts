@@ -3,7 +3,7 @@ import {analyseQuestion} from './guidance';
 import {askMiniAI} from './mini-ai-engine';
 import {historicalOffsetMinutes,timezoneForLocation} from './location';
 
-function check(condition:boolean,message:string){if(!condition)throw new Error(`AstroSathi regression failed: ${message}`)}
+function check(condition:boolean,message:string){if(!condition)throw new Error(`Jyotish G regression failed: ${message}`)}
 function in360(v:number){return Number.isFinite(v)&&v>=0&&v<360}
 
 check(normalizeBirthTime('2:30 AM')==='02:30','12-hour AM parsing failed');
@@ -81,4 +81,4 @@ const hindiMini=askMiniAI(chart,'मेरी शादी कब होगी?'
 check(hindiMini.topic==='marriage'&&hindiMini.intent==='timing','Hindi Mini-AI understanding failed');
 check(/[\u0900-\u097F]/.test(hindiMini.directAnswer),'Hindi Mini-AI answer is not localized');
 
-console.log('AstroSathi deterministic astrology/location + multilingual Mini-AI regression checks passed');
+console.log('Jyotish G deterministic astrology/location + multilingual Mini-AI regression checks passed');

@@ -1,4 +1,4 @@
-package com.astrosathi
+package com.jyotishg
 
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.NativeModule

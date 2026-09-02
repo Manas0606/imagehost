@@ -47,7 +47,7 @@ export async function loginAccount(email:string,password:string){
   });
   if(!r.ok)throw new Error('Email or password is incorrect, or the account is not available.');
   const user=r.data?.user||r.data?.data?.user||{};
-  return {name:user?.name||'AstroSathi User',email:user?.email||normalized};
+  return {name:user?.name||'Jyotish G User',email:user?.email||normalized};
 }
 
 export async function requestRemotePasswordReset(email:string){

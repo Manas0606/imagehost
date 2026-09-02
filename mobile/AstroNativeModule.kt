@@ -1,4 +1,4 @@
-package com.astrosathi
+package com.jyotishg
 
 import android.Manifest
 import android.app.NotificationChannel
@@ -34,12 +34,12 @@ import javax.crypto.spec.PBEKeySpec
 
 class AstroNativeModule(private val ctx: ReactApplicationContext): ReactContextBaseJavaModule(ctx) {
     override fun getName() = "AstroNative"
-    private val prefs by lazy { ctx.getSharedPreferences("astrosathi_secure", Context.MODE_PRIVATE) }
+    private val prefs by lazy { ctx.getSharedPreferences("jyotishg_secure", Context.MODE_PRIVATE) }
     private val random = SecureRandom()
 
     companion object {
-        private const val KEY_ALIAS = "astrosathi_local_vault_v2"
-        private const val CHANNEL_ID = "astrosathi_updates"
+        private const val KEY_ALIAS = "jyotishg_local_vault_v2"
+        private const val CHANNEL_ID = "jyotishg_updates"
         private const val NOTIFICATION_ID = 7301
     }
 
@@ -68,7 +68,7 @@ class AstroNativeModule(private val ctx: ReactApplicationContext): ReactContextB
     @ReactMethod
     fun saveRemoteAccount(name: String, email: String, p: Promise) {
         try {
-            val n = name.trim().ifBlank { "AstroSathi User" }
+            val n = name.trim().ifBlank { "Jyotish G User" }
             val e = email.trim().lowercase()
             require(Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$").matches(e)) { "Invalid account email." }
             write("account", JSONObject().put("name", n).put("email", e).put("provider", "neon-auth").toString())
@@ -151,7 +151,7 @@ class AstroNativeModule(private val ctx: ReactApplicationContext): ReactContextB
                 val signal = CancellationSignal()
                 val executor = ContextCompat.getMainExecutor(ctx)
                 val prompt = BiometricPrompt.Builder(activity)
-                    .setTitle("Unlock AstroSathi")
+                    .setTitle("Unlock Jyotish G")
                     .setSubtitle("Use your fingerprint or face")
                     .setNegativeButton("Cancel", executor) { _, _ -> p.reject("BIOMETRIC_CANCELLED", "Biometric unlock cancelled.") }
                     .build()
@@ -213,8 +213,8 @@ class AstroNativeModule(private val ctx: ReactApplicationContext): ReactContextB
     private fun createChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            manager.createNotificationChannel(NotificationChannel(CHANNEL_ID, "AstroSathi updates", NotificationManager.IMPORTANCE_HIGH).apply {
-                description = "Premium approval and AstroSathi status updates"
+            manager.createNotificationChannel(NotificationChannel(CHANNEL_ID, "Jyotish G updates", NotificationManager.IMPORTANCE_HIGH).apply {
+                description = "Premium approval and Jyotish G status updates"
             })
         }
     }

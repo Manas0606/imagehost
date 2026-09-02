@@ -3,7 +3,7 @@ from pathlib import Path
 import re
 
 root = Path.cwd()
-app = root / 'generated' / 'AstroSathi'
+app = root / 'generated' / 'JyotishG'
 if not app.exists():
     raise SystemExit('Generated React Native project not found')
 
@@ -28,7 +28,7 @@ text = text.replace("pay:'UPI से ₹49 भुगतान'", "pay:'UPI स�
 text = text.replace("pay:'UPI ଦ୍ୱାରା ₹49 ପେମେଣ୍ଟ'", "pay:'UPI ଦ୍ୱାରା ପେମେଣ୍ଟ'")
 
 pattern = r" async function telegramRequest\(\)\{.*?\}\n async function unlock"
-replacement = """ async function telegramRequest(){if(!utr.trim())return Alert.alert('Premium','Enter the payment UTR / Transaction ID first.');setBusy(true);try{await sendTelegramPremiumRequest(premium,{name:boot?.name||'',email:boot?.email||'',deviceId:boot?.deviceId||'',utr:utr.trim()});setUtr('');Alert.alert('Premium Request','Request sent to AstroSathi admin on Telegram. Premium will activate automatically after approval.')}catch(e:any){Alert.alert('Premium Request',e?.message||String(e))}finally{setBusy(false)}}
+replacement = """ async function telegramRequest(){if(!utr.trim())return Alert.alert('Premium','Enter the payment UTR / Transaction ID first.');setBusy(true);try{await sendTelegramPremiumRequest(premium,{name:boot?.name||'',email:boot?.email||'',deviceId:boot?.deviceId||'',utr:utr.trim()});setUtr('');Alert.alert('Premium Request','Request sent to Jyotish G admin on Telegram. Premium will activate automatically after approval.')}catch(e:any){Alert.alert('Premium Request',e?.message||String(e))}finally{setBusy(false)}}
  async function unlock"""
 text, count = re.subn(pattern, replacement, text, count=1, flags=re.S)
 if count != 1:
@@ -58,4 +58,4 @@ for needle in (
         raise SystemExit(f'Premium v2 patch missing: {needle}')
 
 app_ts.write_text(text)
-print('AstroSathi premium v2 overlay installed: configurable price/duration + Telegram admin notifications')
+print('Jyotish G premium v2 overlay installed: configurable price/duration + Telegram admin notifications')
